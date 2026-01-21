@@ -1,7 +1,9 @@
+const INSPECTION_TYPES_NZ = ["Pre-slab / Pre-pour (foundations)", "Set-out / Pre-foundation check", "Under-slab plumbing inspection", "Under-slab drainage inspection", "Foundation / footings inspection", "Blockwork / retaining wall inspection", "Slab pour observation", "Pre-wrap / Building wrap inspection", "Pre-cladding / cavity battens", "Pre-line (framing / bracing / fixings)", "Hold-downs / fixings / bracing check", "Mid-build framing check", "Pre-roof / roof framing", "Roofing / roof cladding inspection", "Pre-joinery / openings check", "Joinery installation inspection", "Pre-lining services (electrical/plumbing/HVAC)", "Insulation inspection", "Wet area waterproofing inspection", "Pre-tile inspection", "Smoke alarm / fire safety check", "Stairs / balustrade / barrier inspection", "Deck / balcony / handrail inspection", "Final inspection (CCC / code compliance)", "CCC documentation review", "Electrical (CoC) check", "Plumbing (PS3 / as-built) check", "Gasfitting check", "Drainage sign-off", "Other"];
+
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD MCB_AUTOUPDATE_OPTION1 20260121220011
+// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -59,7 +61,7 @@ function showUpdateBanner(onReload){
 })();
 // ===== /AUTO UPDATE =====
 
-// BUILD HS_DELEGATE_FIX 20260121112818
+// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -85,17 +87,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD HS_DELEGATE_FIX 20260121112818
-// BUILD HS_DELEGATE_FIX 20260121112818
-// BUILD HS_DELEGATE_FIX 20260121112818
-// BUILD HS_DELEGATE_FIX 20260121112818
-// BUILD HS_DELEGATE_FIX 20260121112818
-// BUILD HS_DELEGATE_FIX 20260121112818
-// BUILD HS_DELEGATE_FIX 20260121112818
-// BUILD HS_DELEGATE_FIX 20260121112818
-// BUILD HS_DELEGATE_FIX 20260121112818
-// BUILD HS_DELEGATE_FIX 20260121112818
-// BUILD HS_DELEGATE_FIX 20260121112818
+// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
+// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
+// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
+// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
+// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
+// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
+// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
+// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
+// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
+// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
+// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -2100,6 +2102,8 @@ function openTaskForm(seed={}){
     dueDate: "",
     assignedSubbieId: null,
     photos: [],
+    photosTaken: false,
+    photosJson: "[]",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -2370,6 +2374,8 @@ function openDiaryForm(seed={}){
     category: "Labour",
     rate: "",
     photos: [],
+    photosTaken: false,
+    photosJson: "[]",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -2482,6 +2488,8 @@ function openVariationForm(seed={}){
     amount: "",
     status: "Draft",
     photos: [],
+    photosTaken: false,
+    photosJson: "[]",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -2661,6 +2669,8 @@ function openDeliveryForm(seed={}){
     dropPoint: "",
     notes: "",
     photos: [],
+    photosTaken: false,
+    photosJson: "[]",
     createdAt:new Date().toISOString(),
     updatedAt:new Date().toISOString()
   };
@@ -2761,6 +2771,8 @@ function openInspectionForm(seed={}){
     inspector: "",
     notes: "",
     photos: [],
+    photosTaken: false,
+    photosJson: "[]",
     createdAt:new Date().toISOString(),
     updatedAt:new Date().toISOString()
   };
@@ -2777,7 +2789,9 @@ function openInspectionForm(seed={}){
     <div class="grid two">
       <div>
         <label>Type</label>
-        <input id="i_type" class="input" value="${escapeHtml(i.type||"")}" placeholder="Pre-slab / Pre-line / Post-line / Final / etc" />
+        <select id="i_type" class="input">
+          ${INSPECTION_TYPES_NZ.map(t=>`<option value="${escapeHtml(t)}" ${t===i.type?"selected":""}>${escapeHtml(t)}</option>`).join("")}
+        </select>
       </div>
       <div>
         <label>Date</label>
@@ -2792,6 +2806,13 @@ function openInspectionForm(seed={}){
     <input id="i_insp" class="input" value="${escapeHtml(i.inspector||"")}" placeholder="Optional" />
     <label>Notes</label>
     <textarea id="i_notes" class="input">${escapeHtml(i.notes||"")}</textarea>
+    <div style="margin-top:10px">
+      <label style="display:flex;align-items:center;gap:10px">
+        <input id="i_photosTaken" type="checkbox" style="transform:scale(1.15)" ${ (i.photosTaken===true || (typeof i.photosJson==="string" && i.photosJson.trim() && i.photosJson.trim()!=="[]")) ? "checked" : "" } />
+        <span>Photos taken</span>
+      </label>
+      <div class="sub">Tick if photos were taken on site (syncs via photosJson).</div>
+    </div>
     <label>Photos</label>
     <input id="i_photos" class="input" type="hidden" accept="image/*" multiple />
     ${i.photos?.length ? `<div class="thumbgrid">${i.photos.map(ph=>`<div class="thumb"><img src="${ph.dataUrl}" alt="${escapeHtml(ph.name)}"/></div>`).join("")}</div>` : ""}
@@ -2817,6 +2838,9 @@ function openInspectionForm(seed={}){
     i.result = $("#i_result").value;
     i.inspector = $("#i_insp").value.trim();
     i.notes = $("#i_notes").value.trim();
+    i.photosTaken = !!$("#i_photosTaken")?.checked;
+    i.photosJson = JSON.stringify(i.photosTaken ? [{taken:true, at:new Date().toISOString()}] : []);
+
     i.photos = [...(i.photos||[]), ...added];
     i.updatedAt = new Date().toISOString();
     if(!i.projectId) alert("Project required.");
@@ -3207,11 +3231,21 @@ function loadDemo(){
   });
   const sid = uid();
   state.subbies.unshift({ id:sid, name:"Sparkies Ltd", trade:"Electrician", phone:"0211111111", email:"spark@example.com", notes:"Prefers Fridays", createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
-  state.tasks.unshift({ id:uid(), projectId:pid, title:"Book pre-line inspection", details:"Call council", status:"To do", dueDate:new Date(Date.now()+3*86400000).toISOString().slice(0,10), assignedSubbieId:null, photos:[], createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
-  state.diary.unshift({ id:uid(), projectId:pid, date:new Date().toISOString().slice(0,10), summary:"Framing progress in lounge + checked bracing fixings.", hours:"7.5", billable:true, category:"Labour", rate:"", photos:[], createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
-  state.variations.unshift({ id:uid(), projectId:pid, date:new Date().toISOString().slice(0,10), title:"Extra LVL beam", description:"Client requested opening widening; requires LVL + extra labour.", amount:"480", status:"Sent", photos:[], createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
-  state.deliveries.unshift({ id:uid(), projectId:pid, supplier:"PlaceMakers", date:new Date().toISOString().slice(0,10), status:"Expected", items:"Timber pack + fixings", dropPoint:"Driveway", notes:"Call ahead", photos:[], createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
-  state.inspections.unshift({ id:uid(), projectId:pid, type:"Pre-line", date:new Date(Date.now()+2*86400000).toISOString().slice(0,10), result:"Booked", inspector:"", notes:"Ensure smoke alarms locations confirmed", photos:[], createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
+  state.tasks.unshift({ id:uid(), projectId:pid, title:"Book pre-line inspection", details:"Call council", status:"To do", dueDate:new Date(Date.now()+3*86400000).toISOString().slice(0,10), assignedSubbieId:null, photos: [],
+    photosTaken: false,
+    photosJson: "[]", createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
+  state.diary.unshift({ id:uid(), projectId:pid, date:new Date().toISOString().slice(0,10), summary:"Framing progress in lounge + checked bracing fixings.", hours:"7.5", billable:true, category:"Labour", rate:"", photos: [],
+    photosTaken: false,
+    photosJson: "[]", createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
+  state.variations.unshift({ id:uid(), projectId:pid, date:new Date().toISOString().slice(0,10), title:"Extra LVL beam", description:"Client requested opening widening; requires LVL + extra labour.", amount:"480", status:"Sent", photos: [],
+    photosTaken: false,
+    photosJson: "[]", createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
+  state.deliveries.unshift({ id:uid(), projectId:pid, supplier:"PlaceMakers", date:new Date().toISOString().slice(0,10), status:"Expected", items:"Timber pack + fixings", dropPoint:"Driveway", notes:"Call ahead", photos: [],
+    photosTaken: false,
+    photosJson: "[]", createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
+  state.inspections.unshift({ id:uid(), projectId:pid, type:"Pre-line", date:new Date(Date.now()+2*86400000).toISOString().slice(0,10), result:"Booked", inspector:"", notes:"Ensure smoke alarms locations confirmed", photos: [],
+    photosTaken: false,
+    photosJson: "[]", createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
   saveState(state);
   render(); try{renderDeletedProjectsUI();}catch(e){}
 }
