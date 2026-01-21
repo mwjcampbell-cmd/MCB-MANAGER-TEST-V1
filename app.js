@@ -1,9 +1,48 @@
 const INSPECTION_TYPES_NZ = ["Pre-slab / Pre-pour (foundations)", "Set-out / Pre-foundation check", "Under-slab plumbing inspection", "Under-slab drainage inspection", "Foundation / footings inspection", "Blockwork / retaining wall inspection", "Slab pour observation", "Pre-wrap / Building wrap inspection", "Pre-cladding / cavity battens", "Pre-line (framing / bracing / fixings)", "Hold-downs / fixings / bracing check", "Mid-build framing check", "Pre-roof / roof framing", "Roofing / roof cladding inspection", "Pre-joinery / openings check", "Joinery installation inspection", "Pre-lining services (electrical/plumbing/HVAC)", "Insulation inspection", "Wet area waterproofing inspection", "Pre-tile inspection", "Smoke alarm / fire safety check", "Stairs / balustrade / barrier inspection", "Deck / balcony / handrail inspection", "Final inspection (CCC / code compliance)", "CCC documentation review", "Electrical (CoC) check", "Plumbing (PS3 / as-built) check", "Gasfitting check", "Drainage sign-off", "Other"];
+// CCC planning order (NZ residential - common sequence)
+const CCC_INSPECTION_ORDER = [
+  "Pre-slab / Pre-pour (foundations)",
+  "Foundation steel inspection",
+  "Drainage inspection (under-slab / pre-cover)",
+  "Underfloor / subfloor framing inspection",
+  "Bracing inspection",
+  "Framing / pre-line inspection",
+  "Plumbing inspection (pre-line)",
+  "Electrical inspection (pre-line)",
+  "Insulation inspection",
+  "Pre-lining inspection",
+  "Building wrap / cladding cavity inspection",
+  "Cladding inspection",
+  "Waterproofing inspection (wet areas)",
+  "Membrane / deck waterproofing inspection",
+  "Final plumbing inspection",
+  "Final electrical inspection",
+  "Fireplace / solid fuel heater inspection",
+  "Final building inspection / CCC final"
+];
+function cccSortTypes(types){
+  const idx = new Map(CCC_INSPECTION_ORDER.map((t,i)=>[t,i]));
+  return (types||[]).slice().sort((a,b)=>{
+    const ia = idx.has(a) ? idx.get(a) : 9999;
+    const ib = idx.has(b) ? idx.get(b) : 9999;
+    if(ia!==ib) return ia-ib;
+    return String(a).localeCompare(String(b));
+  });
+}
+function patchProject(projectId, patch){
+  const now = new Date().toISOString();
+  state.projects = (state.projects||[]).map(p=>{
+    if(String(p.id)!==String(projectId)) return p;
+    return { ...p, ...patch, updatedAt: now };
+  });
+  saveState(state);
+}
+
 
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
+// BUILD CCC_PLAN 20260121223701
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -61,7 +100,7 @@ function showUpdateBanner(onReload){
 })();
 // ===== /AUTO UPDATE =====
 
-// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
+// BUILD CCC_PLAN 20260121223701
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -87,17 +126,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
-// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
-// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
-// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
-// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
-// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
-// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
-// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
-// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
-// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
-// BUILD INSPECTIONS_DROPDOWN_PHOTOS 20260121221533
+// BUILD CCC_PLAN 20260121223701
+// BUILD CCC_PLAN 20260121223701
+// BUILD CCC_PLAN 20260121223701
+// BUILD CCC_PLAN 20260121223701
+// BUILD CCC_PLAN 20260121223701
+// BUILD CCC_PLAN 20260121223701
+// BUILD CCC_PLAN 20260121223701
+// BUILD CCC_PLAN 20260121223701
+// BUILD CCC_PLAN 20260121223701
+// BUILD CCC_PLAN 20260121223701
+// BUILD CCC_PLAN 20260121223701
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -1648,6 +1687,7 @@ render(); try{renderDeletedProjectsUI();}catch(e){}
   }
   if(tab==="inspections"){
     $("#addInspection").onclick = ()=> openInspectionForm({ projectId:p.id });
+    $("#cccPlanBtn") && ($("#cccPlanBtn").onclick = ()=> openCCCPlanModal(p));
     $$("#inspectionListProj [data-action='edit']").forEach(b=>b.onclick = ()=> openInspectionForm(state.inspections.find(i=>String(i.id)===String(b.dataset.id))));
     $$("#inspectionListProj [data-action='delete']").forEach(b=>b.onclick = ()=>{
       const i = state.inspections.find(x=>String(x.id)===String(b.dataset.id));
@@ -1877,7 +1917,10 @@ function projectInspections(p){
   const inspections = aliveArr(state.inspections)
     .filter(i=>i.projectId===p.id && isAlive(i))
     .sort((a,b)=>(a.date||"").localeCompare(b.date||""));
-  const ccc = buildCCCStatus(p.id, inspections);
+  const planned = (p.cccPlanTypes && Array.isArray(p.cccPlanTypes)) ? p.cccPlanTypes : [];
+  const ccc = buildCCCStatus(p.id, inspections, planned);
+  const plannedCount = planned.length;
+  const plannedList = cccSortTypes(planned);
   return `
     <div class="grid two">
       <div class="card">
@@ -1891,7 +1934,12 @@ function projectInspections(p){
       </div>
       <div class="card">
         <h2>CCC tracker</h2>
-        <div class="sub">Mark each inspection result to track CCC readiness.</div>
+        <div class="sub">Pick which inspections apply to this job (planning). Scheduling is optional.</div>
+        <div class="row space noPrint" style="margin-top:10px">
+          <div class="sub"><strong id="cccPlannedCount">${plannedCount}</strong> planned</div>
+          <button class="btn" id="cccPlanBtn" type="button">Choose inspections</button>
+        </div>
+        ${plannedList.length ? `<div class="sub" style="margin-top:8px">Order: ${plannedList.map(t=>`<span class="badge">${escapeHtml(t)}</span>`).join(" ")}</div>` : `<div class="sub" style="margin-top:8px">No planned inspections yet. Choose inspections to build your CCC plan.</div>`}
         <hr/>
         ${ccc}
       </div>
@@ -1921,16 +1969,24 @@ function inspectionRow(i){
     </div>
   `;
 }
-function buildCCCStatus(projectId, inspections){
-  // lightweight stage list – editable later
-  const stages = ["Pre-slab", "Pre-line", "Post-line", "Final"];
-  const rows = stages.map(s=>{
-    const done = inspections.filter(i=> (i.type||"").toLowerCase().includes(s.toLowerCase().replace("-","")) && i.result==="Pass").length>0;
-    const badge = done ? `<span class="badge ok">✔ Passed</span>` : `<span class="badge warn">⏳ Pending</span>`;
-    return `<div class="row space"><div><strong>${escapeHtml(s)}</strong></div><div>${badge}</div></div>`;
+function buildCCCStatus(projectId, inspections, plannedTypes){
+  const planned = Array.isArray(plannedTypes) && plannedTypes.length ? cccSortTypes(plannedTypes) : cccSortTypes(["Pre-slab / Pre-pour (foundations)","Framing / pre-line inspection","Insulation inspection","Final building inspection / CCC final"]);
+  const norm = s=>String(s||"").trim().toLowerCase();
+  const rows = planned.map(t=>{
+    const hits = inspections.filter(i=> norm(i.type)===norm(t) && isAlive(i));
+    let status = "Pending";
+    let cls = "warn";
+    if(hits.some(h=>h.result==="Pass")){ status="Passed"; cls="ok"; }
+    else if(hits.some(h=>h.result==="Fail")){ status="Failed"; cls="bad"; }
+    else if(hits.length){ status = hits[0].result || "Booked"; cls="warn"; }
+    const badge = status==="Passed" ? `<span class="badge ok">✔ Passed</span>` :
+                  status==="Failed" ? `<span class="badge bad">✖ Failed</span>` :
+                  `<span class="badge warn">⏳ ${escapeHtml(status)}</span>`;
+    return `<div class="row space"><div><strong>${escapeHtml(t)}</strong></div><div>${badge}</div></div>`;
   }).join("<hr/>");
   return rows;
 }
+
 
 function projectReports(p){
   return `
@@ -2872,7 +2928,70 @@ function openInspectionForm(seed={}){
   });
 }
 
-// ----------------- Reports -----------------
+// ----------------- Reports -----------------function openCCCPlanModal(project){
+  const p = projectById(project.id || project);
+  if(!p) return;
+  const current = new Set(Array.isArray(p.cccPlanTypes) ? p.cccPlanTypes : []);
+  const types = cccSortTypes(INSPECTION_TYPES_NZ);
+  showModal(`
+    <div class="modalCard">
+      <div class="row space">
+        <h2>CCC Planning – Applicable Inspections</h2>
+        <button class="btn" id="closeM" type="button">Close</button>
+      </div>
+      <div class="sub">Select inspections that apply to this job. The CCC tracker will show them in recommended order. Scheduling is optional.</div>
+      <hr/>
+      <div class="row space">
+        <button class="btn" id="cccSelectAll" type="button">Select all</button>
+        <button class="btn" id="cccSelectNone" type="button">Clear</button>
+      </div>
+      <div class="list" id="cccTypeList" style="max-height:55vh; overflow:auto; margin-top:10px">
+        ${types.map(t=>`
+          <label class="item" style="display:flex; gap:10px; align-items:center">
+            <input type="checkbox" class="cccTypeChk" value="${escapeHtml(t)}" ${current.has(t)?"checked":""}/>
+            <div style="flex:1">
+              <div class="title">${escapeHtml(t)}</div>
+              <div class="meta">Included in CCC plan</div>
+            </div>
+          </label>
+        `).join("")}
+      </div>
+      <hr/>
+      <div class="row space">
+        <div class="sub"><span id="cccCountLive">${current.size}</span> selected</div>
+        <button class="btn primary" id="cccPlanSave" type="button">Save plan</button>
+      </div>
+    </div>
+  `);
+  $("#closeM").onclick = closeModal;
+
+  function updateCount(){
+    const n = $$(".cccTypeChk").filter(x=>x.checked).length;
+    $("#cccCountLive").textContent = String(n);
+  }
+  $$(".cccTypeChk").forEach(ch=>ch.onchange = updateCount);
+  updateCount();
+
+  $("#cccSelectAll").onclick = ()=>{
+    $$(".cccTypeChk").forEach(ch=>ch.checked = true);
+    updateCount();
+  };
+  $("#cccSelectNone").onclick = ()=>{
+    $$(".cccTypeChk").forEach(ch=>ch.checked = false);
+    updateCount();
+  };
+
+  $("#cccPlanSave").onclick = ()=>{
+    const selected = $$(".cccTypeChk").filter(x=>x.checked).map(x=>x.value);
+    patchProject(p.id, { cccPlanTypes: selected });
+    closeModal();
+    // rerender same project tab
+    navTo("project", { id: p.id, tab: "inspections" });
+    render();
+  };
+}
+
+
 function renderReports(app){
   setHeader("Reports");
   const projects = aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
