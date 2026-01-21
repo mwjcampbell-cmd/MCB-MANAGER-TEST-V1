@@ -1,4 +1,4 @@
-const CACHE="mcb-cache-autoupdate-20260121215317";
+const CACHE="mcb-cache-highend-ui-20260121220011";
 const ASSETS = [
   "./",
   "./index.html",

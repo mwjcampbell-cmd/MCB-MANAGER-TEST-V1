@@ -1,7 +1,7 @@
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD MCB_AUTOUPDATE_OPTION1 20260121215317
+// BUILD MCB_AUTOUPDATE_OPTION1 20260121220011
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");

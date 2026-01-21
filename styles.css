@@ -211,9 +211,6 @@ body { padding-bottom: env(safe-area-inset-bottom); }
 .kvK{width:42%;opacity:.75}
 .kvV{flex:1}
 
-/* =========================
-   PREMIUM UI THEME (Test)
-   ========================= */
 
 /* Smooth typography + layout */
 :root{
@@ -465,3 +462,192 @@ main, .content, #app{
 
 /* Auto-update banner safe area */
 #updateBanner{padding-top: calc(12px + env(safe-area-inset-top));}
+
+/* =========================
+   HIGH-END UI THEME v2 (Fieldwire-ish)
+   BUILD 20260121220011
+   ========================= */
+
+:root{
+  --bg: #0c1118;
+  --surface: #111826;
+  --surface2:#0f1724;
+  --card: rgba(255,255,255,0.045);
+  --card2: rgba(255,255,255,0.06);
+  --stroke: rgba(255,255,255,0.09);
+  --stroke2: rgba(255,255,255,0.14);
+  --text: rgba(255,255,255,0.92);
+  --muted: rgba(255,255,255,0.62);
+  --muted2: rgba(255,255,255,0.42);
+  --accent: #4ea1ff;
+  --accent2:#7c5cff;
+  --danger:#ff5a67;
+  --shadow: 0 14px 40px rgba(0,0,0,0.55);
+  --shadowS: 0 8px 22px rgba(0,0,0,0.35);
+  --r: 16px;
+  --r2: 12px;
+  --tap: 46px;
+  --pad: 14px;
+  --pad2: 12px;
+}
+
+html, body{
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Text","SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial;
+  letter-spacing: .1px;
+}
+
+/* App shell */
+header, .header{
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(12,17,24,0.92) !important;
+  border-bottom: 1px solid var(--stroke);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Top right pill buttons */
+header .btn, .header .btn, header button, .header button{
+  border-radius: 999px !important;
+  min-height: 40px;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: none;
+}
+header .btn.primary, .header .btn.primary{
+  background: rgba(78,161,255,0.16);
+  border-color: rgba(78,161,255,0.28);
+}
+
+/* Main cards */
+.card{
+  background: var(--card) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--r) !important;
+  box-shadow: var(--shadowS);
+}
+
+/* Section headers */
+h1,h2,h3{
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+.sub, .muted, .smallmuted{
+  color: var(--muted) !important;
+}
+
+/* Lists */
+.listItem{
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--r2);
+  box-shadow: none;
+}
+.listItem:hover{
+  border-color: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.045);
+}
+
+/* Buttons */
+.btn, button{
+  border-radius: 12px !important;
+  min-height: var(--tap);
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.055);
+  color: var(--text);
+  box-shadow: none;
+  transition: background 120ms ease, border-color 120ms ease, transform 80ms ease;
+}
+.btn:active, button:active{ transform: translateY(1px); }
+.btn.primary, .btnPrimary{
+  background: rgba(78,161,255,0.18);
+  border-color: rgba(78,161,255,0.35);
+}
+.btn.danger, .btnDanger{
+  background: rgba(255,90,103,0.14);
+  border-color: rgba(255,90,103,0.28);
+}
+.btn.ghost, .btnGhost{
+  background: transparent;
+}
+
+/* Inputs */
+.input, input, textarea, select{
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  border-radius: 12px !important;
+  color: var(--text) !important;
+  min-height: var(--tap);
+  padding: 10px 12px !important;
+}
+.label{
+  color: var(--muted);
+  font-weight: 600;
+}
+hr{
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+/* Modal */
+.modal, .modalCard, .dialog{
+  background: rgba(17,24,38,0.96) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--shadow);
+}
+.backdrop, .overlay, .modalBackdrop{
+  background: rgba(0,0,0,0.60) !important;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Footer nav - swipeable and “toolbelt” feel */
+.footerbar, footer{
+  background: rgba(12,17,24,0.92) !important;
+  border-top: 1px solid rgba(255,255,255,0.10);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.nav{
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  gap: 10px !important;
+  padding: 10px 10px 12px !important;
+  touch-action: pan-x;
+}
+.nav .btn{
+  flex: 0 0 auto !important;
+  min-width: 116px;
+  border-radius: 14px !important;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.09);
+}
+.nav .btn.active, .nav .btn[aria-current="page"]{
+  background: rgba(78,161,255,0.16);
+  border-color: rgba(78,161,255,0.30);
+}
+
+/* Badges / pills */
+.badge, .pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.05);
+  color: var(--text);
+  font-weight: 650;
+  font-size: 12px;
+}
+
+/* Ensure bottom spacing so content never hides behind footer */
+main, .content, #app{
+  padding-bottom: 120px !important;
+}
