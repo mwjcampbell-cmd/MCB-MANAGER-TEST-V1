@@ -1,4 +1,4 @@
-const CACHE="mcb-cache-fieldwire-fixapp-20260121214246";
+const CACHE="mcb-cache-autoupdate-20260121215317";
 const ASSETS = [
   "./",
   "./index.html",

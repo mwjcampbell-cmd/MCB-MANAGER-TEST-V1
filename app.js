@@ -1,3 +1,64 @@
+
+
+// ===== AUTO UPDATE (Option 1) =====
+// BUILD MCB_AUTOUPDATE_OPTION1 20260121215317
+function showUpdateBanner(onReload){
+  // Small non-intrusive banner at top of page
+  let el = document.getElementById("updateBanner");
+  if(!el){
+    el = document.createElement("div");
+    el.id = "updateBanner";
+    el.style.position = "fixed";
+    el.style.left = "12px";
+    el.style.right = "12px";
+    el.style.top = "12px";
+    el.style.zIndex = "99999";
+    el.style.padding = "12px 14px";
+    el.style.borderRadius = "14px";
+    el.style.border = "1px solid rgba(255,255,255,0.16)";
+    el.style.background = "rgba(15,22,32,0.92)";
+    el.style.backdropFilter = "blur(10px)";
+    el.style.webkitBackdropFilter = "blur(10px)";
+    el.style.boxShadow = "0 18px 40px rgba(0,0,0,0.45)";
+    el.innerHTML = `
+      <div style="display:flex;gap:10px;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-weight:700;letter-spacing:.2px">Update available</div>
+          <div style="opacity:.75;font-size:13px">Reload to use the latest version.</div>
+        </div>
+        <button id="updateReloadBtn" style="min-height:42px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.18);background:linear-gradient(135deg, rgba(82,132,255,0.95), rgba(157,92,255,0.92));color:rgba(255,255,255,0.95);font-weight:700">Reload</button>
+      </div>`;
+    document.body.appendChild(el);
+  }
+  const btn = document.getElementById("updateReloadBtn");
+  if(btn) btn.onclick = ()=>{ try{ onReload && onReload(); }finally{ window.location.reload(); } };
+}
+
+(function registerServiceWorkerAutoUpdate(){
+  if(!("serviceWorker" in navigator)) return;
+  navigator.serviceWorker.register("./sw.js").then((reg)=>{
+    reg.addEventListener("updatefound", ()=>{
+      const newWorker = reg.installing;
+      if(!newWorker) return;
+      newWorker.addEventListener("statechange", ()=>{
+        // installed + existing controller means an update is ready
+        if(newWorker.state === "installed" && navigator.serviceWorker.controller){
+          showUpdateBanner();
+        }
+      });
+    });
+  }).catch(()=>{});
+
+  // If the controller changes, reload once (new SW took control)
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener("controllerchange", ()=>{
+    if(refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
+})();
+// ===== /AUTO UPDATE =====
+
 // BUILD HS_DELEGATE_FIX 20260121112818
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
