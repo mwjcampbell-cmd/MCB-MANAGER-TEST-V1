@@ -1,4 +1,4 @@
-// BUILD FIELDWIRE_UI_ALL_LOADFIX 20260121093255
+// BUILD HS_DELEGATE_FIX 20260121112818
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -24,17 +24,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD FIELDWIRE_UI_ALL_LOADFIX 20260121093255
-// BUILD FIELDWIRE_UI_ALL_LOADFIX 20260121093255
-// BUILD FIELDWIRE_UI_ALL_LOADFIX 20260121093255
-// BUILD FIELDWIRE_UI_ALL_LOADFIX 20260121093255
-// BUILD FIELDWIRE_UI_ALL_LOADFIX 20260121093255
-// BUILD FIELDWIRE_UI_ALL_LOADFIX 20260121093255
-// BUILD FIELDWIRE_UI_ALL_LOADFIX 20260121093255
-// BUILD FIELDWIRE_UI_ALL_LOADFIX 20260121093255
-// BUILD FIELDWIRE_UI_ALL_LOADFIX 20260121093255
-// BUILD FIELDWIRE_UI_ALL_LOADFIX 20260121093255
-// BUILD FIELDWIRE_UI_ALL_LOADFIX 20260121093255
+// BUILD HS_DELEGATE_FIX 20260121112818
+// BUILD HS_DELEGATE_FIX 20260121112818
+// BUILD HS_DELEGATE_FIX 20260121112818
+// BUILD HS_DELEGATE_FIX 20260121112818
+// BUILD HS_DELEGATE_FIX 20260121112818
+// BUILD HS_DELEGATE_FIX 20260121112818
+// BUILD HS_DELEGATE_FIX 20260121112818
+// BUILD HS_DELEGATE_FIX 20260121112818
+// BUILD HS_DELEGATE_FIX 20260121112818
+// BUILD HS_DELEGATE_FIX 20260121112818
+// BUILD HS_DELEGATE_FIX 20260121112818
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -1008,11 +1008,35 @@ function formatDateNZ(iso){
   return `${parts[2]}/${parts[1]}/${parts[0]}`;
 }
 
+function hsHandleDelegatedClick(e){
+  const t = e.target && (e.target.closest ? e.target.closest("button") : e.target);
+  if(!t) return;
+  const id = t.id || "";
+  if(!id) return;
+
+  // Only act when H&S screen is visible
+  const hsRoot = document.querySelector(".hsDash") || document.getElementById("hsContent");
+  if(!hsRoot) return;
+
+  const pid = hsGetActiveProjectId ? hsGetActiveProjectId() : (state.hsActiveProjectId || state.activeProjectId || "");
+  if(id==="hsQuickHazard"){ e.preventDefault(); openHSHazardForm(pid); }
+  else if(id==="hsQuickToolbox"){ e.preventDefault(); openHSToolboxForm(pid); }
+  else if(id==="hsQuickIncident"){ e.preventDefault(); openHSIncidentForm(pid); }
+  else if(id==="hsQuickInduction"){ e.preventDefault(); openHSInductionForm(pid); }
+  else if(id==="hsGoHazards"){ e.preventDefault(); state.hsActiveView="hazards"; saveState(state); render(); }
+}
+function hsEnsureDelegated(){
+  if(window.__hsDelegated) return;
+  window.__hsDelegated = true;
+  document.addEventListener("click", hsHandleDelegatedClick, true);
+}
+
 function renderHSPage(app, params){
   setHeader("H&S");
   app.innerHTML = renderHS();
   // bind after DOM is injected
   try{ hsBindActions(); }catch(e){ console.warn("hsBindActions failed", e); }
+  try{ hsEnsureDelegated(); }catch(e){}
 }
 
 function render(){
@@ -1920,14 +1944,6 @@ app.innerHTML = `
     const id = row.dataset.id;
     navTo("tasks", Object.assign({}, projectId ? {projectId} : {}, { id }));
   });
-        if(t && confirmDelete(`task "${t.title}"`)){
-      state.tasks = softDeleteById(state.tasks, t.id);
-// NOTE: soft delete handled elsewhere
-
-      saveState(state); renderTasks(app, { projectId });
-render(); try{renderDeletedProjectsUI();}catch(e){}
-    }
-  });
 }
 function taskRowWithProject(t){
   const p = projectById(t.projectId);
@@ -2200,14 +2216,7 @@ app.innerHTML = `
     const id = row.dataset.id;
     navTo("diary", Object.assign({}, projectId ? {projectId} : {}, { id }));
   });
-        if(d && confirmDelete(`diary entry ${dateFmt(d.date)}`)){
-      state.diary = softDeleteById(state.diary, d.id);
-// NOTE: soft delete handled elsewhere
-
-      saveState(state); renderDiary(app, { projectId });
-render(); try{renderDeletedProjectsUI();}catch(e){}
-    }
-  });
+  // (Fieldwire UI refactor) Delete is handled by detail view actions.
 }
 function diaryRowWithProject(d){
   const p = projectById(d.projectId);

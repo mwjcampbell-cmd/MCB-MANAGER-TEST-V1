@@ -1,4 +1,4 @@
-const CACHE="mcb-cache-fieldwire-loadfix-20260121093255";
+const CACHE="mcb-cache-fieldwire-ui-20260121212557";
 const ASSETS = [
   "./",
   "./index.html",
