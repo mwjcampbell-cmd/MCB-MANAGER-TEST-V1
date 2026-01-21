@@ -42,7 +42,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD CCC_PLAN 20260121223701
+// BUILD CCCPLAN_FIX2 20260121233734
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -100,7 +100,7 @@ function showUpdateBanner(onReload){
 })();
 // ===== /AUTO UPDATE =====
 
-// BUILD CCC_PLAN 20260121223701
+// BUILD CCCPLAN_FIX2 20260121233734
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -126,17 +126,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD CCC_PLAN 20260121223701
-// BUILD CCC_PLAN 20260121223701
-// BUILD CCC_PLAN 20260121223701
-// BUILD CCC_PLAN 20260121223701
-// BUILD CCC_PLAN 20260121223701
-// BUILD CCC_PLAN 20260121223701
-// BUILD CCC_PLAN 20260121223701
-// BUILD CCC_PLAN 20260121223701
-// BUILD CCC_PLAN 20260121223701
-// BUILD CCC_PLAN 20260121223701
-// BUILD CCC_PLAN 20260121223701
+// BUILD CCCPLAN_FIX2 20260121233734
+// BUILD CCCPLAN_FIX2 20260121233734
+// BUILD CCCPLAN_FIX2 20260121233734
+// BUILD CCCPLAN_FIX2 20260121233734
+// BUILD CCCPLAN_FIX2 20260121233734
+// BUILD CCCPLAN_FIX2 20260121233734
+// BUILD CCCPLAN_FIX2 20260121233734
+// BUILD CCCPLAN_FIX2 20260121233734
+// BUILD CCCPLAN_FIX2 20260121233734
+// BUILD CCCPLAN_FIX2 20260121233734
+// BUILD CCCPLAN_FIX2 20260121233734
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -2928,7 +2928,9 @@ function openInspectionForm(seed={}){
   });
 }
 
-// ----------------- Reports -----------------function openCCCPlanModal(project){
+;
+// ----------------- Reports -----------------
+function openCCCPlanModal(project){
   const p = projectById(project.id || project);
   if(!p) return;
   const current = new Set(Array.isArray(p.cccPlanTypes) ? p.cccPlanTypes : []);
