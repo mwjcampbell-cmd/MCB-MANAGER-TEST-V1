@@ -293,7 +293,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
+// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -386,7 +386,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
+// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -412,17 +412,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
-// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
-// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
-// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
-// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
-// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
-// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
-// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
-// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
-// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
-// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
+// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
+// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
+// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
+// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
+// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
+// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
+// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
+// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
+// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
+// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
+// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -440,6 +440,23 @@ function showApp(){
   render(); try{renderDeletedProjectsUI();}catch(e){}
 }
 
+
+function ensureEquipmentNav(){
+  try{
+    const nav = document.querySelector(".footerbar .nav");
+    if(!nav) return;
+    if(nav.querySelector('[data-nav="equipment"]')) return;
+    const btn = document.createElement("button");
+    btn.className = "btn";
+    btn.dataset.nav = "equipment";
+    btn.type = "button";
+    btn.textContent = "Equipment";
+    // insert before Settings
+    const before = nav.querySelector('[data-nav="settings"]') || null;
+    nav.insertBefore(btn, before);
+    btn.addEventListener("click", ()=> navTo("equipment"));
+  }catch(e){}
+}
 function ensurePipelineNav(){
   try{
     const nav = document.querySelector(".footerbar .nav");
@@ -460,6 +477,7 @@ function ensurePipelineNav(){
 
 document.addEventListener("DOMContentLoaded", ()=>{
   try{ensurePipelineNav();}catch(e){}
+  try{ensureEquipmentNav();}catch(e){}
   
   // Auto-bypass login if login UI is not present
   if(!document.getElementById("loginBtn")){ try{ showApp(); }catch(e){} }
@@ -2214,6 +2232,69 @@ function renderProjectDetail(app, params){
   bindProjectTabEvents(p, tab);
 }
 
+
+function projectEquipmentCard(p){
+  const assigned = aliveArr(state.equipment).filter(e=>!e.deletedAt && String(e.projectId)===String(p.id))
+    .sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  return `
+    <div class="card">
+      <div class="row space" style="align-items:center">
+        <h2>Equipment</h2>
+        <button class="btn" type="button" data-assign-equipment="${escapeAttr(p.id)}">Assign</button>
+      </div>
+      <div class="sub">Company equipment assigned to this site.</div>
+      <hr/>
+      ${assigned.length ? assigned.map(e=>`
+        <div class="row space" style="gap:10px; margin:10px 0">
+          <div>
+            <div style="font-weight:800">${escapeHtml(e.name||"Equipment")}</div>
+            <div class="sub">${escapeHtml(e.type||"")}${e.assetTag?` • ${escapeHtml(e.assetTag)}`:""}</div>
+          </div>
+          <div class="row" style="gap:8px">
+            <button class="btn ghost sm" type="button" data-unassign-equipment="${escapeAttr(e.id)}">Remove</button>
+            <button class="btn ghost sm" type="button" data-eq-view="${escapeAttr(e.id)}">Open</button>
+          </div>
+        </div>
+      `).join("") : `<div class="sub">No equipment assigned yet.</div>`}
+    </div>
+  `;
+}
+function assignEquipmentModal(projectId){
+  const p = projectById(projectId);
+  const all = aliveArr(state.equipment).filter(e=>!e.deletedAt && (e.status||"active")!=="retired")
+    .sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  return `
+    <div class="modal">
+      <div class="modalCard">
+        <div class="row space" style="align-items:center">
+          <div>
+            <div class="h2">Assign equipment</div>
+            <div class="sub">Choose equipment to assign to <b>${escapeHtml(p?.name||"site")}</b>.</div>
+          </div>
+          <button class="iconBtn" id="closeModalBtn" type="button">✕</button>
+        </div>
+        <div class="list" style="margin-top:14px; max-height:55vh; overflow:auto">
+          ${all.map(e=>{
+            const assigned = String(e.projectId||"")===String(projectId);
+            return `
+            <div class="listItem">
+              <div class="row space" style="gap:12px">
+                <div>
+                  <div style="font-weight:800">${escapeHtml(e.name||"Equipment")}</div>
+                  <div class="sub">${escapeHtml(e.type||"")}${e.assetTag?` • ${escapeHtml(e.assetTag)}`:""}</div>
+                </div>
+                <button class="btn ${assigned?"ghost":"primary"} sm" type="button" data-assign-eq-item="${escapeAttr(e.id)}" data-project="${escapeAttr(projectId)}">${assigned?"Assigned":"Assign"}</button>
+              </div>
+            </div>`;
+          }).join("")}
+        </div>
+        <div class="row" style="justify-content:flex-end; gap:10px; margin-top:16px">
+          <button class="btn ghost" id="cancelModalBtn" type="button">Close</button>
+        </div>
+      </div>
+    </div>`;
+}
+
 function projectOverview(p){
   const openTasks = alive(state.tasks).filter(t=>t.projectId===p.id && t.status!=="Done" && isAlive(t)).length;
   const diaryCount = alive(state.diary).filter(d=>d.projectId===p.id && isAlive(d)).length;
@@ -2243,7 +2324,7 @@ function projectOverview(p){
         <hr/>
         <h2>Notes</h2>
         <div class="sub">${escapeHtml(p.notes||"—")}</div>
-      </div>
+      ${projectEquipmentCard(p)}</div>
     </div>
   `;
 }
@@ -5286,10 +5367,10 @@ function bindEquipmentEvents(){
   const st = document.getElementById("equipmentStatus");
   const add = document.getElementById("btnAddEquipment");
   if(q){
-    q.oninput = ()=>{ state.ui.equipmentQuery = q.value; saveState(state); document.getElementById("main").innerHTML = renderEquipment(); bindEquipmentEvents(); };
+    q.oninput = ()=>{ state.ui.equipmentQuery = q.value; saveState(state); document.getElementById("app").innerHTML = renderEquipment(); bindEquipmentEvents(); };
   }
   if(st){
-    st.onchange = ()=>{ state.ui.equipmentStatus = st.value; saveState(state); document.getElementById("main").innerHTML = renderEquipment(); bindEquipmentEvents(); };
+    st.onchange = ()=>{ state.ui.equipmentStatus = st.value; saveState(state); document.getElementById("app").innerHTML = renderEquipment(); bindEquipmentEvents(); };
   }
   if(add){
     add.onclick = ()=>{ openModal(equipmentFormModal(null)); bindEquipmentModal(null); };
@@ -5321,7 +5402,7 @@ function bindEquipmentModal(eqId){
       try{
         const r = parseRoute();
         if(r.path==="equipment"){
-          document.getElementById("main").innerHTML = renderEquipment();
+          document.getElementById("app").innerHTML = renderEquipment();
           bindEquipmentEvents();
         }
       }catch(err){}
