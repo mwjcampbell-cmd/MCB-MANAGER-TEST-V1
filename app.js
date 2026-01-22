@@ -282,7 +282,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD 12C1_PROGRAMME_REMOVABLE_V2 20260122080002
+// BUILD 12C1_PROGRAMME_REMOVABLE_V3 20260122081251
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -375,7 +375,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD 12C1_PROGRAMME_REMOVABLE_V2 20260122080002
+// BUILD 12C1_PROGRAMME_REMOVABLE_V3 20260122081251
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -401,17 +401,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD 12C1_PROGRAMME_REMOVABLE_V2 20260122080002
-// BUILD 12C1_PROGRAMME_REMOVABLE_V2 20260122080002
-// BUILD 12C1_PROGRAMME_REMOVABLE_V2 20260122080002
-// BUILD 12C1_PROGRAMME_REMOVABLE_V2 20260122080002
-// BUILD 12C1_PROGRAMME_REMOVABLE_V2 20260122080002
-// BUILD 12C1_PROGRAMME_REMOVABLE_V2 20260122080002
-// BUILD 12C1_PROGRAMME_REMOVABLE_V2 20260122080002
-// BUILD 12C1_PROGRAMME_REMOVABLE_V2 20260122080002
-// BUILD 12C1_PROGRAMME_REMOVABLE_V2 20260122080002
-// BUILD 12C1_PROGRAMME_REMOVABLE_V2 20260122080002
-// BUILD 12C1_PROGRAMME_REMOVABLE_V2 20260122080002
+// BUILD 12C1_PROGRAMME_REMOVABLE_V3 20260122081251
+// BUILD 12C1_PROGRAMME_REMOVABLE_V3 20260122081251
+// BUILD 12C1_PROGRAMME_REMOVABLE_V3 20260122081251
+// BUILD 12C1_PROGRAMME_REMOVABLE_V3 20260122081251
+// BUILD 12C1_PROGRAMME_REMOVABLE_V3 20260122081251
+// BUILD 12C1_PROGRAMME_REMOVABLE_V3 20260122081251
+// BUILD 12C1_PROGRAMME_REMOVABLE_V3 20260122081251
+// BUILD 12C1_PROGRAMME_REMOVABLE_V3 20260122081251
+// BUILD 12C1_PROGRAMME_REMOVABLE_V3 20260122081251
+// BUILD 12C1_PROGRAMME_REMOVABLE_V3 20260122081251
+// BUILD 12C1_PROGRAMME_REMOVABLE_V3 20260122081251
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -587,6 +587,20 @@ function programmeTemplateResolve(key){
 function programmeTasksForProject(projectId){
   return aliveArr(state.programmeTasks).filter(x=>String(x.projectId)===String(projectId) && isAlive(x));
 }
+
+
+function saveProgrammeTasksForProject(projectId, tasks){
+  // Replace all programmeTasks for this project with provided list, then persist state
+  const pid = String(projectId);
+  const keep = aliveArr(state.programmeTasks).filter(x=>String(x.projectId)!==pid);
+  const next = keep.concat((tasks||[]).map(t=>{
+    if(!t.projectId) t.projectId = pid;
+    return t;
+  }));
+  state.programmeTasks = next;
+  saveState(state);
+}
+
 
 function parseISODate(s){
   try{ if(!s) return null; const d=new Date(s); return isNaN(d)?null:d; }catch(e){ return null; }
@@ -4880,7 +4894,7 @@ document.addEventListener("click", (ev)=>{
     saveProgrammeTasksForProject(projectId, tasks);
     // refresh current view
     if(window.currentProject && String(window.currentProject.id)===String(projectId)){
-      renderProjectView(window.currentProject.id);
+      openProject(window.currentProject.id);
     } else {
       renderRemovedProgrammeTasks(projectId);
     }
