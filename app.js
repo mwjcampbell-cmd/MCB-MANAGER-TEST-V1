@@ -303,7 +303,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
+// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -396,7 +396,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
+// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -427,17 +427,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
-// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
-// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
-// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
-// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
-// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
-// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
-// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
-// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
-// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
-// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
+// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
+// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
+// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
+// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
+// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
+// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
+// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
+// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
+// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
+// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
+// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -1442,7 +1442,7 @@ function renderHSHazards(pid){
         const overdueCls = overdue ? "dangerText" : "";
         const meta = `${escapeHtml(h.status||"Open")} • Review ${formatDateNZ(h.reviewDate)}${score?` • ${score}`:""}`;
         return `
-          <div class="fwListItem"${(state.uiSelections&&state.uiSelections.tasks&&String(state.uiSelections.tasks.selectedId)===String(t.id))?" active":""} data-hsopen="hazard" data-id="${h.id}"><div class="fwMain">
+          <div class="fwListItem" data-hsopen="hazard" data-id="${h.id}"><div class="fwMain">
               <div class="fwTitle">${escapeHtml(h.hazard||"")}</div>
               <div class="muted ${overdueCls}">${meta}</div>
             </div>
@@ -2992,22 +2992,45 @@ function projectReports(p){
 }
 
 // ----------------- Tasks (global) -----------------
-
 function renderTasks(app, params){
   setHeader("Tasks");
-  params = params || {};
-  state.uiSelections = state.uiSelections || {};
-  state.uiSelections.tasks = state.uiSelections.tasks || {};
   const projectId = params.projectId || "";
-  const selectedId = String(params.id || state.uiSelections.tasks.selectedId || "");
+  const selectedId = params.id || (state.uiSelections?.tasks?.selectedId || "");
   const projects = aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   const tasks = aliveArr(state.tasks)
     .filter(t=> !projectId || t.projectId===projectId)
     .slice()
     .sort((a,b)=>(b.updatedAt||"").localeCompare(a.updatedAt||""));
-  const selectedTask = selectedId ? aliveArr(state.tasks).find(t=>String(t.id)===selectedId) : null;
+  
+  if(selectedId){
+    const tsel = aliveArr(state.tasks).find(t=>String(t.id)===String(selectedId));
+    if(tsel){
+      state.uiSelections.tasks = state.uiSelections.tasks || {};
+      state.uiSelections.tasks.selectedId = String(selectedId);
+      saveState(state);
+      app.innerHTML = renderTaskDetail(tsel);
+      bindTaskDetail(tsel, projectId);
+      return;
+    } else {
+      // stale selection
+      state.uiSelections.tasks = state.uiSelections.tasks || {};
+      delete state.uiSelections.tasks.selectedId;
+      saveState(state);
+    }
+  
+  // fill_taskDetailBody
+  try{
+    const sid = getSelected("tasks");
+    const body = document.getElementById("taskDetailBody");
+    if(body){
+      const item = sid ? aliveArr(state.tasks).find(x=>String(x.id)===String(sid)) : null;
+      body.innerHTML = renderTaskDetailPane(item);
+      if(item) bindTaskDetailPane(item);
+    }
+  }catch(e){}
 
-  app.innerHTML = `
+}
+app.innerHTML = `
     <div class="card">
       <div class="row space">
         <h2>Tasks</h2>
@@ -3024,58 +3047,20 @@ function renderTasks(app, params){
         <div></div>
       </div>
       <hr/>
-      <div class="list" id="taskList">
-        ${tasks.length ? tasks.map(taskRowWithProject).join("") : `<div class="sub">No tasks yet.</div>`}
-      </div>
-    </div>
-
-    <div class="card" style="margin-top:14px" id="taskDetailCard">
-      <div class="h3">Details</div>
-      <div id="taskDetailBody" style="margin-top:10px">
-        ${selectedTask ? renderTaskDetailPane(selectedTask) : `<div class="sub">Tap a task above to see details here.</div>`}
-      </div>
+      <div class="list" id="taskList">${tasks.length ? tasks.map(taskRowWithProject).join("") : `<div class="sub">No tasks yet.</div>`}</div>
     </div>
   `;
-
   $("#newTask").onclick = ()=> openTaskForm(projectId ? { projectId } : {});
   $("#taskProjectFilter").onchange = (e)=>{
     const v = e.target.value;
-    // keep selection if still matches filter, else clear
-    if(v && selectedTask && String(selectedTask.projectId)!==String(v)){
-      delete state.uiSelections.tasks.selectedId;
-      saveState(state);
-    }
     navTo("tasks", v ? {projectId:v} : {});
   };
 
-  $("#taskList").onclick = (ev)=>{
-    const row = ev.target.closest("[data-action='open']");
-    if(!row) return;
-    const id = String(row.dataset.id || "");
-    state.uiSelections.tasks.selectedId = id;
-    saveState(state);
-    // highlight
-    $$("#taskList .fwListItem").forEach(x=>x.classList.remove("active"));
-    row.classList.add("active");
-    const t = aliveArr(state.tasks).find(x=>String(x.id)===id);
-    const body = document.getElementById("taskDetailBody");
-    if(body){
-      body.innerHTML = t ? renderTaskDetailPane(t) : `<div class="sub">Task not found.</div>`;
-      if(t) bindTaskDetailPane(t, projectId);
-    }
-  
-    // make it obvious something happened
-    try{
-      const card = document.getElementById("taskDetailCard");
-      if(card) card.scrollIntoView({behavior:"smooth", block:"start"});
-    }catch(e){}
-};
-
-  if(selectedTask){
-    bindTaskDetailPane(selectedTask, projectId);
-  }
+  $$("#taskList [data-action='open']").forEach(row=>row.onclick = ()=>{
+    const id = row.dataset.id;
+    navTo("tasks", Object.assign({}, projectId ? {projectId} : {}, { id }));
+  });
 }
-
 function taskRowWithProject(t){
   const p = projectById(t.projectId);
   const status = t.status || "Open";
@@ -3088,7 +3073,7 @@ function taskRowWithProject(t){
   ].filter(Boolean).join(" • ");
   const badge = `<span class="fwBadge ${statusBadgeClass(status)}">${escapeHtml(status)}</span>`;
   return `
-    <div class="fwListItem${(state.uiSelections&&state.uiSelections.tasks&&String(state.uiSelections.tasks.selectedId)===String(t.id))?" active":""}" data-action="open" data-id="${t.id}">
+    <div class="fwListItem" data-action="open" data-id="${t.id}">
       <div class="fwMain">
         <div class="fwTitleRow">
           <div class="fwTitle">${escapeHtml(t.title || "(Untitled task)")}</div>
@@ -3304,22 +3289,44 @@ function openDiaryView(d){
   $("#closeM").onclick = closeModal;
   $("#editV").onclick = ()=> openDiaryForm(d);
 }
-
 function renderDiary(app, params){
   setHeader("Diary");
-  params = params || {};
-  state.uiSelections = state.uiSelections || {};
-  state.uiSelections.diary = state.uiSelections.diary || {};
   const projectId = params.projectId || "";
-  const selectedId = String(params.id || state.uiSelections.diary.selectedId || "");
+  const selectedId = params.id || (state.uiSelections?.tasks?.selectedId || "");
   const projects = aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   const entries = aliveArr(state.diary)
     .filter(d=> !projectId || d.projectId===projectId)
     .slice()
     .sort((a,b)=>(b.date||"").localeCompare(a.date||""));
-  const selectedEntry = selectedId ? aliveArr(state.diary).find(d=>String(d.id)===selectedId) : null;
+  
+  if(selectedId){
+    const dsel = aliveArr(state.diary).find(d=>String(d.id)===String(selectedId));
+    if(dsel){
+      state.uiSelections.diary = state.uiSelections.diary || {};
+      state.uiSelections.diary.selectedId = String(selectedId);
+      saveState(state);
+      app.innerHTML = renderDiaryDetail(dsel);
+      bindDiaryDetail(dsel, projectId);
+      return;
+    } else {
+      state.uiSelections.diary = state.uiSelections.diary || {};
+      delete state.uiSelections.diary.selectedId;
+      saveState(state);
+    }
+  
+  // fill_diaryDetailBody
+  try{
+    const sid = getSelected("diary");
+    const body = document.getElementById("diaryDetailBody");
+    if(body){
+      const item = sid ? aliveArr(state.diary).find(x=>String(x.id)===String(sid)) : null;
+      body.innerHTML = renderDiaryDetailPane(item);
+      if(item) bindDiaryDetailPane(item);
+    }
+  }catch(e){}
 
-  app.innerHTML = `
+}
+app.innerHTML = `
     <div class="card">
       <div class="row space">
         <h2>Diary</h2>
@@ -3336,56 +3343,21 @@ function renderDiary(app, params){
         <div></div>
       </div>
       <hr/>
-      <div class="list" id="diaryList">
-        ${entries.length ? entries.map(diaryRowWithProject).join("") : `<div class="sub">No diary entries yet.</div>`}
-      </div>
-    </div>
-
-    <div class="card" style="margin-top:14px" id="diaryDetailCard">
-      <div class="h3">Details</div>
-      <div id="diaryDetailBody" style="margin-top:10px">
-        ${selectedEntry ? renderDiaryDetailPane(selectedEntry) : `<div class="sub">Tap a diary entry above to see details here.</div>`}
-      </div>
+      <div class="list" id="diaryList">${entries.length ? entries.map(diaryRowWithProject).join("") : `<div class="sub">No diary entries yet.</div>`}</div>
     </div>
   `;
-
   $("#newDiary").onclick = ()=> openDiaryForm(projectId ? { projectId } : {});
   $("#diaryProjectFilter").onchange = (e)=>{
     const v = e.target.value;
-    if(v && selectedEntry && String(selectedEntry.projectId)!==String(v)){
-      delete state.uiSelections.diary.selectedId;
-      saveState(state);
-    }
     navTo("diary", v ? {projectId:v} : {});
   };
 
-  $("#diaryList").onclick = (ev)=>{
-    const row = ev.target.closest("[data-action='open']");
-    if(!row) return;
-    const id = String(row.dataset.id || "");
-    state.uiSelections.diary.selectedId = id;
-    saveState(state);
-    $$("#diaryList .fwListItem").forEach(x=>x.classList.remove("active"));
-    row.classList.add("active");
-    const d = aliveArr(state.diary).find(x=>String(x.id)===id);
-    const body = document.getElementById("diaryDetailBody");
-    if(body){
-      body.innerHTML = d ? renderDiaryDetailPane(d) : `<div class="sub">Entry not found.</div>`;
-      if(d) bindDiaryDetailPane(d);
-    }
-  
-    // make it obvious something happened
-    try{
-      const card = document.getElementById("diaryDetailCard");
-      if(card) card.scrollIntoView({behavior:"smooth", block:"start"});
-    }catch(e){}
-};
-
-  if(selectedEntry){
-    bindDiaryDetailPane(selectedEntry);
-  }
+  $$("#diaryList [data-action='open']").forEach(row=>row.onclick = ()=>{
+    const id = row.dataset.id;
+    navTo("diary", Object.assign({}, projectId ? {projectId} : {}, { id }));
+  });
+  // (Fieldwire UI refactor) Delete is handled by detail view actions.
 }
-
 function diaryRowWithProject(d){
   const p = projectById(d.projectId);
   const date = d.date ? dateFmt(d.date) : "";
@@ -3397,7 +3369,7 @@ function diaryRowWithProject(d){
     photosTaken ? "Photos taken" : ""
   ].filter(Boolean).join(" • ");
   return `
-    <div class="fwListItem${(state.uiSelections&&state.uiSelections.diary&&String(state.uiSelections.diary.selectedId)===String(d.id))?" active":""}" data-action="open" data-id="${d.id}">
+    <div class="fwListItem" data-action="open" data-id="${d.id}">
       <div class="fwMain">
         <div class="fwTitleRow">
           <div class="fwTitle">${escapeHtml(date || "Diary entry")}</div>
@@ -6252,111 +6224,105 @@ function getLastUpdateStamp(){
   }catch(e){ return "—"; }
 }
 
+function setSelected(section, id){
+  state.uiSelections = state.uiSelections || {};
+  state.uiSelections[section] = state.uiSelections[section] || {};
+  state.uiSelections[section].selectedId = String(id||"");
+  saveState(state);
+}
+function getSelected(section){
+  try{
+    return String(((state.uiSelections||{})[section]||{}).selectedId || "");
+  }catch(e){ return ""; }
+}
+
 function renderTaskDetailPane(t){
+  if(!t) return `<div class="sub">Tap a task to see details.</div>`;
   const p = projectById(t.projectId);
   const status = t.status || "Open";
   const due = t.dueDate ? dateFmt(t.dueDate) : "";
-  const updated = t.updatedAt ? dateFmt(String(t.updatedAt).slice(0,10)) : "";
-  const photosTaken = !!(t.photosTaken || (t.photosJson && String(t.photosJson).trim()) || (t.photos && t.photos.length));
+  const photosTaken = !!(t.photosTaken || (t.photosJson && String(t.photosJson).trim()));
   return `
-    <div class="row space" style="align-items:flex-start; gap:12px; flex-wrap:wrap">
+    <div class="row space" style="align-items:flex-start; gap:10px; flex-wrap:wrap">
       <div>
-        <div class="fwH1" style="margin:0">${escapeHtml(t.title || "(Untitled task)")}</div>
+        <div class="h3" style="margin:0">${escapeHtml(t.title||"(Untitled task)")}</div>
         <div class="sub">${p ? escapeHtml(p.name||p.address||"") : "No project"}</div>
       </div>
       <div class="row" style="gap:10px">
-        <button class="btn" id="taskEditPane" type="button">Edit</button>
-        <button class="btn danger" id="taskDeletePane" type="button">Delete</button>
+        <button class="btn ghost sm" id="taskDetailEdit" type="button">Edit</button>
       </div>
     </div>
-    <div class="fwBadgeRow" style="margin-top:10px">
-      <span class="fwBadge ${statusBadgeClass(status)}">${escapeHtml(status)}</span>
-      ${due ? `<span class="fwBadge muted">Due ${escapeHtml(due)}</span>` : ``}
-      ${photosTaken ? `<span class="fwBadge">${escapeHtml("Photos taken")}</span>` : ``}
-      ${updated ? `<span class="fwBadge muted">Updated ${escapeHtml(updated)}</span>` : ``}
+    <div class="row" style="gap:8px; margin-top:10px; flex-wrap:wrap">
+      <span class="badge">${escapeHtml(status)}</span>
+      ${due?`<span class="badge">Due ${escapeHtml(due)}</span>`:""}
+      ${photosTaken?`<span class="badge">Photos taken</span>`:""}
     </div>
-    ${t.description ? `<div class="card" style="margin-top:12px"><div class="h3">Details</div><div class="sub" style="margin-top:6px; white-space:pre-wrap">${escapeHtml(t.description)}</div></div>` : ``}
+    ${t.description?`<div class="sub" style="margin-top:10px; white-space:pre-wrap">${escapeHtml(t.description)}</div>`:""}
   `;
 }
-function bindTaskDetailPane(t, projectId){
-  const e = document.getElementById("taskEditPane");
-  if(e) e.onclick = ()=> openTaskForm(t);
-  const d = document.getElementById("taskDeletePane");
-  if(d) d.onclick = ()=>{
-    if(!confirm("Delete this task?")) return;
-    deleteTask(t.id);
-    // clear selection if it was this task
-    state.uiSelections = state.uiSelections || {};
-    state.uiSelections.tasks = state.uiSelections.tasks || {};
-    if(String(state.uiSelections.tasks.selectedId)===String(t.id)) delete state.uiSelections.tasks.selectedId;
-    saveState(state);
-    requestRender();
-  };
+function bindTaskDetailPane(t){
+  const b = document.getElementById("taskDetailEdit");
+  if(b) b.onclick = ()=> openTaskForm(t);
 }
 
 function renderDiaryDetailPane(d){
+  if(!d) return `<div class="sub">Tap a diary entry to see details.</div>`;
   const p = projectById(d.projectId);
   const date = d.date ? dateFmt(d.date) : "";
   const hours = (d.hours || d.totalHours || d.hoursWorked || "");
-  const photosTaken = !!(d.photosTaken || (d.photosJson && String(d.photosJson).trim()) || (d.photos && d.photos.length));
+  const photosTaken = !!(d.photosTaken || (d.photosJson && String(d.photosJson).trim()));
   return `
-    <div class="row space" style="align-items:flex-start; gap:12px; flex-wrap:wrap">
+    <div class="row space" style="align-items:flex-start; gap:10px; flex-wrap:wrap">
       <div>
-        <div class="fwH1" style="margin:0">${escapeHtml(date || "(No date)")}</div>
-        <div class="sub">${p ? escapeHtml(p.name||p.address||"") : "No project"}${hours!=="" ? ` • <b>${escapeHtml(String(hours))}h</b>` : ""}</div>
+        <div class="h3" style="margin:0">${escapeHtml(date||"(No date)")}</div>
+        <div class="sub">${p ? escapeHtml(p.name||p.address||"") : "No project"}${hours!==""?` • <b>${escapeHtml(String(hours))}h</b>`:""}</div>
       </div>
       <div class="row" style="gap:10px">
-        <button class="btn" id="diaryEditPane" type="button">Edit</button>
-        <button class="btn danger" id="diaryDeletePane" type="button">Delete</button>
+        <button class="btn ghost sm" id="diaryDetailEdit" type="button">Edit</button>
       </div>
     </div>
-    <div class="fwBadgeRow" style="margin-top:10px">
-      ${photosTaken ? `<span class="fwBadge">${escapeHtml("Photos taken")}</span>` : ``}
-      ${(d.variation || d.variationText) ? `<span class="fwBadge warn">Variation</span>` : ``}
+    <div class="row" style="gap:8px; margin-top:10px; flex-wrap:wrap">
+      ${photosTaken?`<span class="badge">Photos taken</span>`:""}
+      ${(d.variation||d.variationText)?`<span class="badge">Variation</span>`:""}
     </div>
-    <div class="card" style="margin-top:12px">
-      <div class="h3">Notes</div>
-      <div class="sub" style="margin-top:6px; white-space:pre-wrap">${escapeHtml(d.notes || d.note || "") || "<span class='sub'>—</span>"}</div>
-    </div>
+    <div class="sub" style="margin-top:10px; white-space:pre-wrap">${escapeHtml(d.notes || d.note || "") || "—"}</div>
   `;
 }
 function bindDiaryDetailPane(d){
-  const e = document.getElementById("diaryEditPane");
-  if(e) e.onclick = ()=> openDiaryForm(d);
-  const del = document.getElementById("diaryDeletePane");
-  if(del) del.onclick = ()=>{
-    if(!confirm("Delete this diary entry?")) return;
-    deleteDiary(d.id);
-    state.uiSelections = state.uiSelections || {};
-    state.uiSelections.diary = state.uiSelections.diary || {};
-    if(String(state.uiSelections.diary.selectedId)===String(d.id)) delete state.uiSelections.diary.selectedId;
-    saveState(state);
-    requestRender();
-  };
+  const b = document.getElementById("diaryDetailEdit");
+  if(b) b.onclick = ()=> openDiaryForm(d);
 }
 
-// MCB_TASK_DIARY_SELECT_DELEGATE_V9 20260122215412
+// MCB_V12_TAP_DETAILS
 document.addEventListener("click",(ev)=>{
-  try{
-    const taskRow = ev.target && ev.target.closest ? ev.target.closest("#taskList [data-action='open']") : null;
-    if(taskRow){
-      const id = String(taskRow.dataset.id || "");
-      state.uiSelections = state.uiSelections || {};
-      state.uiSelections.tasks = state.uiSelections.tasks || {};
-      state.uiSelections.tasks.selectedId = id;
-      saveState(state);
-      requestRender();
-      return;
+  const row = ev.target && ev.target.closest ? ev.target.closest("[data-action='open']") : null;
+  if(!row) return;
+  const id = row.dataset.id;
+  const route = (typeof parseRoute==="function") ? parseRoute() : {path:""};
+  if(route.path==="tasks"){
+    setSelected("tasks", id);
+    const t = aliveArr(state.tasks).find(x=>String(x.id)===String(id));
+    const body = document.getElementById("taskDetailBody");
+    if(body){
+      body.innerHTML = renderTaskDetailPane(t);
+      bindTaskDetailPane(t);
+      body.classList.remove("flash"); void body.offsetWidth; body.classList.add("flash");
     }
-    const diaryRow = ev.target && ev.target.closest ? ev.target.closest("#diaryList [data-action='open']") : null;
-    if(diaryRow){
-      const id = String(diaryRow.dataset.id || "");
-      state.uiSelections = state.uiSelections || {};
-      state.uiSelections.diary = state.uiSelections.diary || {};
-      state.uiSelections.diary.selectedId = id;
-      saveState(state);
-      requestRender();
-      return;
+  }
+  if(route.path==="diary"){
+    setSelected("diary", id);
+    const d = aliveArr(state.diary).find(x=>String(x.id)===String(id));
+    const body = document.getElementById("diaryDetailBody");
+    if(body){
+      body.innerHTML = renderDiaryDetailPane(d);
+      bindDiaryDetailPane(d);
+      body.classList.remove("flash"); void body.offsetWidth; body.classList.add("flash");
     }
-  }catch(e){ console.warn("select delegate failed", e); }
+  }
 });
+
+(function(){
+  const css = `.flash{ animation: flashKeyframesV12 .25s ease-out; }
+  @keyframes flashKeyframesV12 { from { transform: translateY(2px); opacity:.85; } to { transform: translateY(0); opacity:1; } }`;
+  const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
+})();
