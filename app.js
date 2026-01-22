@@ -1,4 +1,3 @@
-// BUILD ULTRA_PREMIUM 20260122171219
 
 
 const BUILD_ID = "mcb-build-20260122092103";
@@ -294,7 +293,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
+// BUILD SPLIT_FLEET_EQUIPMENT_V1 20260122175416
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -387,7 +386,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
+// BUILD SPLIT_FLEET_EQUIPMENT_V1 20260122175416
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -413,17 +412,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
-// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
-// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
-// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
-// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
-// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
-// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
-// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
-// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
-// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
-// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
+// BUILD SPLIT_FLEET_EQUIPMENT_V1 20260122175416
+// BUILD SPLIT_FLEET_EQUIPMENT_V1 20260122175416
+// BUILD SPLIT_FLEET_EQUIPMENT_V1 20260122175416
+// BUILD SPLIT_FLEET_EQUIPMENT_V1 20260122175416
+// BUILD SPLIT_FLEET_EQUIPMENT_V1 20260122175416
+// BUILD SPLIT_FLEET_EQUIPMENT_V1 20260122175416
+// BUILD SPLIT_FLEET_EQUIPMENT_V1 20260122175416
+// BUILD SPLIT_FLEET_EQUIPMENT_V1 20260122175416
+// BUILD SPLIT_FLEET_EQUIPMENT_V1 20260122175416
+// BUILD SPLIT_FLEET_EQUIPMENT_V1 20260122175416
+// BUILD SPLIT_FLEET_EQUIPMENT_V1 20260122175416
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -5120,82 +5119,7 @@ function fmtNZDateTime(iso){
 try{ state.equipment = aliveArr(state.equipment); state.equipmentLogs = aliveArr(state.equipmentLogs); }catch(e){}
 
 
-function renderEquipment(){
-  const items = aliveArr(state.equipment).filter(e=>!e.deletedAt);
-  const q = (state.ui && state.ui.equipmentQuery) ? String(state.ui.equipmentQuery).toLowerCase() : "";
-  const statusFilter = (state.ui && state.ui.equipmentStatus) ? state.ui.equipmentStatus : "active";
-  const filtered = items.filter(e=>{
-    const st = (e.status||"active");
-    if(statusFilter==="active" && st!=="active") return false;
-    if(statusFilter==="all") return true;
-    if(statusFilter==="retired" && st!=="retired") return false;
-    if(statusFilter==="maintenance" && st!=="maintenance") return false;
-    return true;
-  }).filter(e=>{
-    if(!q) return true;
-    const hay = `${e.name||""} ${e.type||""} ${e.assetTag||""} ${e.locationText||""}`.toLowerCase();
-    return hay.includes(q);
-  }).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
 
-  const projMap = new Map(aliveArr(state.projects).map(p=>[String(p.id), p]));
-  const fmt = (s)=> s ? String(s).slice(0,10).split("-").reverse().join("/") : "—";
-
-  return `
-  <div class="page">
-    <div class="pageHeader">
-      <div>
-        <div class="h1">Equipment & Fleet</div>
-        <div class="sub">Track tool and vehicle locations, servicing, WOF & registration.</div>
-      </div>
-      <div class="row" style="gap:10px">
-        <button class="btn" id="btnAddEquipment" type="button">Add</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="row" style="gap:10px; flex-wrap:wrap">
-        <input class="input" id="equipmentSearch" placeholder="Search equipment…" value="${escapeAttr(q)}" style="flex:1; min-width:220px" />
-        <select class="input" id="equipmentStatus" style="max-width:180px">
-          <option value="active" ${statusFilter==="active"?"selected":""}>Active</option>
-          <option value="maintenance" ${statusFilter==="maintenance"?"selected":""}>Maintenance</option>
-          <option value="retired" ${statusFilter==="retired"?"selected":""}>Retired</option>
-          <option value="all" ${statusFilter==="all"?"selected":""}>All</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="list">
-      ${filtered.length ? filtered.map(e=>{
-        const proj = e.projectId ? projMap.get(String(e.projectId)) : null;
-        const loc = proj ? `Site: ${escapeHtml(proj.name)} (${escapeHtml(proj.address||"")})` : (e.locationText ? escapeHtml(e.locationText) : "—");
-        return `
-        <div class="listItem">
-          <div class="row space" style="align-items:flex-start; gap:12px; flex-wrap:wrap">
-            <div style="min-width:220px">
-              <div style="font-weight:800; font-size:1.05rem">${escapeHtml(e.name||"Unnamed equipment")}</div>
-              <div class="sub">${escapeHtml(e.type||"")}${e.assetTag?` • ${escapeHtml(e.assetTag)}`:""}</div>
-              <div class="sub" style="margin-top:6px"><b>Location:</b> ${loc}</div>
-            </div>
-            <div style="flex:1; min-width:240px">
-              <div class="row" style="gap:8px; flex-wrap:wrap">${fleetStatusBadges(e)}</div>
-              <div class="sub" style="margin-top:6px">
-                Service due: <b>${fmt(e.nextServiceDate)}</b> • WOF: <b>${fmt(e.wofExpiry)}</b> • Reg: <b>${fmt(e.regExpiry)}</b>
-              </div>
-              ${e.notes?`<div class="sub" style="margin-top:6px">${escapeHtml(e.notes).slice(0,140)}${escapeHtml(e.notes).length>140?"…":""}</div>`:""}
-            </div>
-            <div class="row" style="gap:8px; align-items:center" class="noPrint">
-              <button class="btn ghost sm" type="button" data-eq-view="${escapeAttr(e.id)}">Open</button>
-              <button class="btn ghost sm" type="button" data-eq-edit="${escapeAttr(e.id)}">Edit</button>
-              <button class="btn ghost sm" type="button" data-eq-del="${escapeAttr(e.id)}">Delete</button>
-            </div>
-          </div>
-        </div>`;
-      }).join("") : `<div class="card"><div class="sub">No equipment yet. Tap <b>Add</b> to create your fleet register.</div></div>`}
-    </div>
-
-    <div class="sub" style="margin-top:14px; opacity:.8">Note: Equipment is stored locally for now. We can add spreadsheet sync once the forms/workflow are final.</div>
-  </div>`;
-}
 
 
 
@@ -5446,4 +5370,416 @@ document.addEventListener("click", (ev)=>{
   if(tab==="equipment"){
     location.hash = "#/equipment";
   }
+});
+
+
+
+function fleetById(id){ return aliveArr(state.fleet).find(v=>String(v.id)===String(id)); }
+function upsertFleet(v){
+  state.fleet = aliveArr(state.fleet);
+  const idx = state.fleet.findIndex(x=>String(x.id)===String(v.id));
+  if(idx>=0) state.fleet[idx]=v; else state.fleet.unshift(v);
+  saveState(state);
+}
+function softDeleteFleet(id){
+  const v = fleetById(id);
+  if(!v) return;
+  v.deletedAt = new Date().toISOString();
+  upsertFleet(v);
+}
+
+
+
+
+
+function migrateFleetEquipmentSplit(){
+  try{
+    state.equipment = aliveArr(state.equipment);
+    state.equipmentLogs = aliveArr(state.equipmentLogs);
+    state.fleet = aliveArr(state.fleet);
+    state.fleetLogs = aliveArr(state.fleetLogs);
+    if(state.fleet.length>0) return;
+    const eq = state.equipment;
+    const newEquip = [];
+    const newFleet = [];
+    for(const e of eq){
+      const hasCompliance = !!(e.wofExpiry || e.regExpiry || e.nextServiceDate);
+      const type = String(e.type||e.category||"").toLowerCase();
+      const isVehicle = ["vehicle","ute","van","truck","trailer"].some(k=>type.includes(k));
+      if(hasCompliance || isVehicle){
+        newFleet.push({
+          id:e.id, status:e.status||"active", name:e.name||"", vehicleType:e.type||e.category||"",
+          plate:e.assetTag||e.plate||"", projectId:e.projectId||"", locationText:e.locationText||"",
+          notes:e.notes||"", nextServiceDate:e.nextServiceDate||"", wofExpiry:e.wofExpiry||"", regExpiry:e.regExpiry||"",
+          odometerKm:e.odometerKm||"", deletedAt:e.deletedAt||""
+        });
+      } else {
+        newEquip.push({
+          id:e.id, status:e.status||"active", name:e.name||"", category:e.type||e.category||"",
+          assetTag:e.assetTag||"", projectId:e.projectId||"", locationText:e.locationText||"",
+          notes:e.notes||"", testTagDue:e.testTagDue||"", deletedAt:e.deletedAt||""
+        });
+      }
+    }
+    state.fleet = newFleet;
+    state.equipment = newEquip;
+    saveState(state);
+  }catch(e){ console.warn("split migrate failed", e); }
+}
+try{ migrateFleetEquipmentSplit(); }catch(e){}
+
+
+
+
+
+function renderFleet(){
+  const items = aliveArr(state.fleet).filter(v=>!v.deletedAt);
+  const q = (state.ui && state.ui.fleetQuery) ? String(state.ui.fleetQuery).toLowerCase() : "";
+  const statusFilter = (state.ui && state.ui.fleetStatus) ? state.ui.fleetStatus : "active";
+  const filtered = items.filter(v=>{
+    const st = (v.status||"active");
+    if(statusFilter==="active" && st!=="active") return false;
+    if(statusFilter==="all") return true;
+    if(statusFilter==="retired" && st!=="retired") return false;
+    if(statusFilter==="maintenance" && st!=="maintenance") return false;
+    return true;
+  }).filter(v=>{
+    if(!q) return true;
+    const hay = `${v.name||""} ${v.vehicleType||""} ${v.plate||""} ${v.locationText||""}`.toLowerCase();
+    return hay.includes(q);
+  }).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const projMap = new Map(aliveArr(state.projects).map(p=>[String(p.id), p]));
+  const fmt = (s)=> s ? String(s).slice(0,10).split("-").reverse().join("/") : "—";
+  const badge = (label, dateStr)=>{
+    if(!dateStr) return `<span class="badge">${label} —</span>`;
+    const d=new Date(dateStr);
+    const diff = Math.ceil((d - new Date())/(1000*60*60*24));
+    if(diff<0) return `<span class="badge danger">${label} overdue</span>`;
+    if(diff<=30) return `<span class="badge warn">${label} ${diff}d</span>`;
+    return `<span class="badge">${label} ok</span>`;
+  };
+  return `
+  <div class="page">
+    <div class="pageHeader">
+      <div>
+        <div class="h1">Fleet</div>
+        <div class="sub">Vehicles & compliance (WOF/COF, rego, servicing, odometer).</div>
+      </div>
+      <div class="row" style="gap:10px">
+        <button class="btn" id="btnAddFleet" type="button">Add vehicle</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row" style="gap:10px; flex-wrap:wrap">
+        <input class="input" id="fleetSearch" placeholder="Search fleet…" value="${escapeAttr(q)}" style="flex:1; min-width:220px" />
+        <select class="input" id="fleetStatus" style="max-width:180px">
+          <option value="active" ${statusFilter==="active"?"selected":""}>Active</option>
+          <option value="maintenance" ${statusFilter==="maintenance"?"selected":""}>Maintenance</option>
+          <option value="retired" ${statusFilter==="retired"?"selected":""}>Retired</option>
+          <option value="all" ${statusFilter==="all"?"selected":""}>All</option>
+        </select>
+      </div>
+    </div>
+    <div class="list">
+      ${filtered.length ? filtered.map(v=>{
+        const proj = v.projectId ? projMap.get(String(v.projectId)) : null;
+        const loc = proj ? `Site: ${escapeHtml(proj.name)} (${escapeHtml(proj.address||"")})` : (v.locationText ? escapeHtml(v.locationText) : "—");
+        return `
+        <div class="listItem">
+          <div class="row space" style="align-items:flex-start; gap:12px; flex-wrap:wrap">
+            <div style="min-width:220px">
+              <div style="font-weight:800; font-size:1.05rem">${escapeHtml(v.name||"Unnamed vehicle")}</div>
+              <div class="sub">${escapeHtml(v.vehicleType||"")}${v.plate?` • ${escapeHtml(v.plate)}`:""}</div>
+              <div class="sub" style="margin-top:6px"><b>Location:</b> ${loc}</div>
+            </div>
+            <div style="flex:1; min-width:240px">
+              <div class="row" style="gap:8px; flex-wrap:wrap">
+                ${badge("Service", v.nextServiceDate)}
+                ${badge("WOF", v.wofExpiry)}
+                ${badge("Reg", v.regExpiry)}
+              </div>
+              <div class="sub" style="margin-top:6px">
+                Service due: <b>${fmt(v.nextServiceDate)}</b> • WOF: <b>${fmt(v.wofExpiry)}</b> • Reg: <b>${fmt(v.regExpiry)}</b>
+                ${v.odometerKm?` • Odo: <b>${escapeHtml(v.odometerKm)}km</b>`:""}
+              </div>
+            </div>
+            <div class="row" style="gap:8px; align-items:center">
+              <button class="btn ghost sm" type="button" data-fleet-edit="${escapeAttr(v.id)}">Edit</button>
+              <button class="btn ghost sm" type="button" data-fleet-del="${escapeAttr(v.id)}">Delete</button>
+            </div>
+          </div>
+        </div>`;
+      }).join("") : `<div class="card"><div class="sub">No fleet yet. Tap <b>Add vehicle</b> to start your fleet register.</div></div>`}
+    </div>
+  </div>`;
+}
+
+
+
+function renderEquipment(){
+  const items = aliveArr(state.equipment).filter(e=>!e.deletedAt);
+  const q = (state.ui && state.ui.equipQuery) ? String(state.ui.equipQuery).toLowerCase() : "";
+  const statusFilter = (state.ui && state.ui.equipStatus) ? state.ui.equipStatus : "active";
+  const filtered = items.filter(e=>{
+    const st = (e.status||"active");
+    if(statusFilter==="active" && st!=="active") return false;
+    if(statusFilter==="all") return true;
+    if(statusFilter==="retired" && st!=="retired") return false;
+    if(statusFilter==="maintenance" && st!=="maintenance") return false;
+    return true;
+  }).filter(e=>{
+    if(!q) return true;
+    const hay = `${e.name||""} ${e.category||""} ${e.assetTag||""} ${e.locationText||""}`.toLowerCase();
+    return hay.includes(q);
+  }).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const projMap = new Map(aliveArr(state.projects).map(p=>[String(p.id), p]));
+  const fmt = (s)=> s ? String(s).slice(0,10).split("-").reverse().join("/") : "—";
+  const badgeTT = (dateStr)=>{
+    if(!dateStr) return `<span class="badge">Test & Tag —</span>`;
+    const d=new Date(dateStr);
+    const diff = Math.ceil((d - new Date())/(1000*60*60*24));
+    if(diff<0) return `<span class="badge danger">T&T overdue</span>`;
+    if(diff<=30) return `<span class="badge warn">T&T ${diff}d</span>`;
+    return `<span class="badge">T&T ok</span>`;
+  };
+  return `
+  <div class="page">
+    <div class="pageHeader">
+      <div>
+        <div class="h1">Equipment</div>
+        <div class="sub">Tools, plant & assets (location, assignment, test & tag).</div>
+      </div>
+      <div class="row" style="gap:10px">
+        <button class="btn" id="btnAddEquip" type="button">Add equipment</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="row" style="gap:10px; flex-wrap:wrap">
+        <input class="input" id="equipSearch" placeholder="Search equipment…" value="${escapeAttr(q)}" style="flex:1; min-width:220px" />
+        <select class="input" id="equipStatus" style="max-width:180px">
+          <option value="active" ${statusFilter==="active"?"selected":""}>Active</option>
+          <option value="maintenance" ${statusFilter==="maintenance"?"selected":""}>Maintenance</option>
+          <option value="retired" ${statusFilter==="retired"?"selected":""}>Retired</option>
+          <option value="all" ${statusFilter==="all"?"selected":""}>All</option>
+        </select>
+      </div>
+    </div>
+    <div class="list">
+      ${filtered.length ? filtered.map(e=>{
+        const proj = e.projectId ? projMap.get(String(e.projectId)) : null;
+        const loc = proj ? `Site: ${escapeHtml(proj.name)} (${escapeHtml(proj.address||"")})` : (e.locationText ? escapeHtml(e.locationText) : "—");
+        return `
+        <div class="listItem">
+          <div class="row space" style="align-items:flex-start; gap:12px; flex-wrap:wrap">
+            <div style="min-width:220px">
+              <div style="font-weight:800; font-size:1.05rem">${escapeHtml(e.name||"Unnamed equipment")}</div>
+              <div class="sub">${escapeHtml(e.category||"")}${e.assetTag?` • ${escapeHtml(e.assetTag)}`:""}</div>
+              <div class="sub" style="margin-top:6px"><b>Location:</b> ${loc}</div>
+            </div>
+            <div style="flex:1; min-width:240px">
+              <div class="row" style="gap:8px; flex-wrap:wrap">${badgeTT(e.testTagDue)}</div>
+              <div class="sub" style="margin-top:6px">Test & Tag due: <b>${fmt(e.testTagDue)}</b></div>
+            </div>
+            <div class="row" style="gap:8px; align-items:center">
+              <button class="btn ghost sm" type="button" data-equip-edit="${escapeAttr(e.id)}">Edit</button>
+              <button class="btn ghost sm" type="button" data-equip-del="${escapeAttr(e.id)}">Delete</button>
+            </div>
+          </div>
+        </div>`;
+      }).join("") : `<div class="card"><div class="sub">No equipment yet. Tap <b>Add equipment</b> to start your asset register.</div></div>`}
+    </div>
+  </div>`;
+}
+
+
+
+function fleetFormModal(v){
+  const isNew = !v;
+  const veh = v ? {...v} : { id: uid(), status:"active", name:"", vehicleType:"", plate:"", projectId:"", locationText:"", notes:"", nextServiceDate:"", wofExpiry:"", regExpiry:"", odometerKm:"" };
+  const projs = aliveArr(state.projects).filter(p=>!p.deletedAt).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const fmtIn = (s)=> (s && String(s).length>=10) ? String(s).slice(0,10) : "";
+  return `
+  <div class="modal"><div class="modalCard">
+    <div class="row space" style="align-items:center">
+      <div><div class="h2">${isNew?"Add vehicle":"Edit vehicle"}</div><div class="sub">Fleet compliance + servicing.</div></div>
+      <button class="iconBtn" id="closeModalBtn" type="button">✕</button>
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <div><label class="label">Name</label><input class="input" id="fleetName" value="${escapeAttr(veh.name)}" placeholder="e.g. Hilux Ute" /></div>
+      <div><label class="label">Type</label><input class="input" id="fleetType" value="${escapeAttr(veh.vehicleType)}" placeholder="Ute / Van / Truck / Trailer" /></div>
+      <div><label class="label">Plate / Identifier</label><input class="input" id="fleetPlate" value="${escapeAttr(veh.plate)}" placeholder="e.g. ABC123" /></div>
+      <div><label class="label">Status</label>
+        <select class="input" id="fleetStatusIn">
+          <option value="active" ${veh.status==="active"?"selected":""}>Active</option>
+          <option value="maintenance" ${veh.status==="maintenance"?"selected":""}>Maintenance</option>
+          <option value="retired" ${veh.status==="retired"?"selected":""}>Retired</option>
+        </select>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="h3">Location</div>
+      <div class="grid2" style="margin-top:10px">
+        <div><label class="label">Assigned site (optional)</label>
+          <select class="input" id="fleetProject">
+            <option value="">— Not linked to a site —</option>
+            ${projs.map(p=>`<option value="${escapeAttr(p.id)}" ${String(veh.projectId)===String(p.id)?"selected":""}>${escapeHtml(p.name||"Project")} • ${escapeHtml(p.address||"")}</option>`).join("")}
+          </select>
+        </div>
+        <div><label class="label">Location note (optional)</label><input class="input" id="fleetLocText" value="${escapeAttr(veh.locationText||"")}" placeholder="e.g. Yard / With foreman" /></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="h3">Compliance</div>
+      <div class="grid3" style="margin-top:10px">
+        <div><label class="label">Service due</label><input class="input" id="fleetServiceDue" type="date" value="${escapeAttr(fmtIn(veh.nextServiceDate))}" /></div>
+        <div><label class="label">WOF/COF expiry</label><input class="input" id="fleetWof" type="date" value="${escapeAttr(fmtIn(veh.wofExpiry))}" /></div>
+        <div><label class="label">Registration expiry</label><input class="input" id="fleetReg" type="date" value="${escapeAttr(fmtIn(veh.regExpiry))}" /></div>
+      </div>
+      <div style="margin-top:10px"><label class="label">Odometer (km)</label><input class="input" id="fleetOdo" value="${escapeAttr(veh.odometerKm||"")}" placeholder="e.g. 128000" /></div>
+    </div>
+    <div style="margin-top:14px"><label class="label">Notes</label><textarea class="input" id="fleetNotes" rows="4">${escapeHtml(veh.notes||"")}</textarea></div>
+    <div class="row" style="justify-content:flex-end; gap:10px; margin-top:16px">
+      <button class="btn ghost" id="cancelModalBtn" type="button">Cancel</button>
+      <button class="btn" id="saveFleetBtn" type="button">${isNew?"Create":"Save"}</button>
+    </div>
+  </div></div>`;
+}
+function equipmentFormModal(e){
+  const isNew = !e;
+  const eq = e ? {...e} : { id: uid(), status:"active", name:"", category:"", assetTag:"", projectId:"", locationText:"", notes:"", testTagDue:"" };
+  const projs = aliveArr(state.projects).filter(p=>!p.deletedAt).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const fmtIn = (s)=> (s && String(s).length>=10) ? String(s).slice(0,10) : "";
+  return `
+  <div class="modal"><div class="modalCard">
+    <div class="row space" style="align-items:center">
+      <div><div class="h2">${isNew?"Add equipment":"Edit equipment"}</div><div class="sub">Asset tracking + test & tag.</div></div>
+      <button class="iconBtn" id="closeModalBtn" type="button">✕</button>
+    </div>
+    <div class="grid2" style="margin-top:14px">
+      <div><label class="label">Name</label><input class="input" id="equipNameIn" value="${escapeAttr(eq.name)}" placeholder="e.g. Laser level" /></div>
+      <div><label class="label">Category</label><input class="input" id="equipCat" value="${escapeAttr(eq.category)}" placeholder="Tool / Plant / Safety gear" /></div>
+      <div><label class="label">Asset tag</label><input class="input" id="equipTag" value="${escapeAttr(eq.assetTag)}" placeholder="e.g. MCB-TOOL-14" /></div>
+      <div><label class="label">Status</label>
+        <select class="input" id="equipStatusIn">
+          <option value="active" ${eq.status==="active"?"selected":""}>Active</option>
+          <option value="maintenance" ${eq.status==="maintenance"?"selected":""}>Maintenance</option>
+          <option value="retired" ${eq.status==="retired"?"selected":""}>Retired</option>
+        </select>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="h3">Location</div>
+      <div class="grid2" style="margin-top:10px">
+        <div><label class="label">Assigned site (optional)</label>
+          <select class="input" id="equipProject">
+            <option value="">— Not linked to a site —</option>
+            ${projs.map(p=>`<option value="${escapeAttr(p.id)}" ${String(eq.projectId)===String(p.id)?"selected":""}>${escapeHtml(p.name||"Project")} • ${escapeHtml(p.address||"")}</option>`).join("")}
+          </select>
+        </div>
+        <div><label class="label">Location note (optional)</label><input class="input" id="equipLocText" value="${escapeAttr(eq.locationText||"")}" placeholder="e.g. In container / With apprentice" /></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="h3">Compliance</div>
+      <div class="grid2" style="margin-top:10px">
+        <div><label class="label">Test & Tag due</label><input class="input" id="equipTT" type="date" value="${escapeAttr(fmtIn(eq.testTagDue))}" /></div>
+        <div class="sub" style="align-self:end; opacity:.8">Optional for non-electrical gear.</div>
+      </div>
+    </div>
+    <div style="margin-top:14px"><label class="label">Notes</label><textarea class="input" id="equipNotes" rows="4">${escapeHtml(eq.notes||"")}</textarea></div>
+    <div class="row" style="justify-content:flex-end; gap:10px; margin-top:16px">
+      <button class="btn ghost" id="cancelModalBtn" type="button">Cancel</button>
+      <button class="btn" id="saveEquipBtn" type="button">${isNew?"Create":"Save"}</button>
+    </div>
+  </div></div>`;
+}
+
+
+
+
+
+function bindFleetEvents(){
+  state.ui = state.ui || {};
+  const q = document.getElementById("fleetSearch");
+  const st = document.getElementById("fleetStatus");
+  const add = document.getElementById("btnAddFleet");
+  if(q){
+    q.oninput = ()=>{ state.ui.fleetQuery = q.value; saveState(state); document.getElementById("main").innerHTML = renderFleet(); bindFleetEvents(); };
+  }
+  if(st){
+    st.onchange = ()=>{ state.ui.fleetStatus = st.value; saveState(state); document.getElementById("main").innerHTML = renderFleet(); bindFleetEvents(); };
+  }
+  if(add){
+    add.onclick = ()=>{ openModal(fleetFormModal(null)); bindFleetModal(null); };
+  }
+}
+function bindFleetModal(id){
+  const existing = id ? fleetById(id) : null;
+  const btn = document.getElementById("saveFleetBtn");
+  if(btn){
+    btn.onclick = ()=>{
+      const v = existing ? {...existing} : { id: uid(), status:"active" };
+      v.name = (document.getElementById("fleetName").value||"").trim();
+      v.vehicleType = (document.getElementById("fleetType").value||"").trim();
+      v.plate = (document.getElementById("fleetPlate").value||"").trim();
+      v.status = document.getElementById("fleetStatusIn").value;
+      v.projectId = document.getElementById("fleetProject").value || "";
+      v.locationText = (document.getElementById("fleetLocText").value||"").trim();
+      v.nextServiceDate = document.getElementById("fleetServiceDue").value || "";
+      v.wofExpiry = document.getElementById("fleetWof").value || "";
+      v.regExpiry = document.getElementById("fleetReg").value || "";
+      v.odometerKm = (document.getElementById("fleetOdo").value||"").trim();
+      v.notes = (document.getElementById("fleetNotes").value||"").trim();
+      if(!v.name){ alert("Please enter a name."); return; }
+      upsertFleet(v);
+      closeModal();
+      try{ const r=parseRoute(); if(r.path==="fleet"){ document.getElementById("main").innerHTML = renderFleet(); bindFleetEvents(); } }catch(e){}
+    };
+  }
+}
+function bindEquipmentEvents(){
+  state.ui = state.ui || {};
+  const q = document.getElementById("equipSearch");
+  const st = document.getElementById("equipStatus");
+  const add = document.getElementById("btnAddEquip");
+  if(q){
+    q.oninput = ()=>{ state.ui.equipQuery = q.value; saveState(state); document.getElementById("main").innerHTML = renderEquipment(); bindEquipmentEvents(); };
+  }
+  if(st){
+    st.onchange = ()=>{ state.ui.equipStatus = st.value; saveState(state); document.getElementById("main").innerHTML = renderEquipment(); bindEquipmentEvents(); };
+  }
+  if(add){
+    add.onclick = ()=>{ openModal(equipmentFormModal(null)); bindEquipModal(null); };
+  }
+}
+function bindEquipModal(id){
+  const existing = id ? equipmentById(id) : null;
+  const btn = document.getElementById("saveEquipBtn");
+  if(btn){
+    btn.onclick = ()=>{
+      const e = existing ? {...existing} : { id: uid(), status:"active" };
+      e.name = (document.getElementById("equipNameIn").value||"").trim();
+      e.category = (document.getElementById("equipCat").value||"").trim();
+      e.assetTag = (document.getElementById("equipTag").value||"").trim();
+      e.status = document.getElementById("equipStatusIn").value;
+      e.projectId = document.getElementById("equipProject").value || "";
+      e.locationText = (document.getElementById("equipLocText").value||"").trim();
+      e.testTagDue = document.getElementById("equipTT").value || "";
+      e.notes = (document.getElementById("equipNotes").value||"").trim();
+      if(!e.name){ alert("Please enter a name."); return; }
+      upsertEquipment(e);
+      closeModal();
+      try{ const r=parseRoute(); if(r.path==="equipment"){ document.getElementById("main").innerHTML = renderEquipment(); bindEquipmentEvents(); } }catch(e2){}
+    };
+  }
+}
+
+
+
+document.addEventListener("click",(ev)=>{
+  const b = ev.target && ev.target.closest ? ev.target.closest("[data-tab]") : null;
+  if(!b) return;
+  const tab = b.getAttribute("data-tab");
+  if(tab==="fleet") location.hash = "#/fleet";
+  if(tab==="equipment") location.hash = "#/equipment";
 });
