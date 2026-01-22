@@ -1,3 +1,15 @@
+
+
+function escapeAttr(v){
+  if(v === null || v === undefined) return "";
+  return String(v)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#39;");
+}
+
 const INSPECTION_TYPES_NZ = ["Pre-slab / Pre-pour (foundations)", "Set-out / Pre-foundation check", "Under-slab plumbing inspection", "Under-slab drainage inspection", "Foundation / footings inspection", "Blockwork / retaining wall inspection", "Slab pour observation", "Pre-wrap / Building wrap inspection", "Pre-cladding / cavity battens", "Pre-line (framing / bracing / fixings)", "Hold-downs / fixings / bracing check", "Mid-build framing check", "Pre-roof / roof framing", "Roofing / roof cladding inspection", "Pre-joinery / openings check", "Joinery installation inspection", "Pre-lining services (electrical/plumbing/HVAC)", "Insulation inspection", "Wet area waterproofing inspection", "Pre-tile inspection", "Smoke alarm / fire safety check", "Stairs / balustrade / barrier inspection", "Deck / balcony / handrail inspection", "Final inspection (CCC / code compliance)", "CCC documentation review", "Electrical (CoC) check", "Plumbing (PS3 / as-built) check", "Gasfitting check", "Drainage sign-off", "Other"];
 // CCC planning order (NZ residential - common sequence)
 const CCC_INSPECTION_ORDER = [
@@ -42,7 +54,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD PHASE_A_PIPELINE 20260122040611
+// BUILD PHASEA_FIX 20260122041321
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -135,7 +147,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD PHASE_A_PIPELINE 20260122040611
+// BUILD PHASEA_FIX 20260122041321
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -161,17 +173,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD PHASE_A_PIPELINE 20260122040611
-// BUILD PHASE_A_PIPELINE 20260122040611
-// BUILD PHASE_A_PIPELINE 20260122040611
-// BUILD PHASE_A_PIPELINE 20260122040611
-// BUILD PHASE_A_PIPELINE 20260122040611
-// BUILD PHASE_A_PIPELINE 20260122040611
-// BUILD PHASE_A_PIPELINE 20260122040611
-// BUILD PHASE_A_PIPELINE 20260122040611
-// BUILD PHASE_A_PIPELINE 20260122040611
-// BUILD PHASE_A_PIPELINE 20260122040611
-// BUILD PHASE_A_PIPELINE 20260122040611
+// BUILD PHASEA_FIX 20260122041321
+// BUILD PHASEA_FIX 20260122041321
+// BUILD PHASEA_FIX 20260122041321
+// BUILD PHASEA_FIX 20260122041321
+// BUILD PHASEA_FIX 20260122041321
+// BUILD PHASEA_FIX 20260122041321
+// BUILD PHASEA_FIX 20260122041321
+// BUILD PHASEA_FIX 20260122041321
+// BUILD PHASEA_FIX 20260122041321
+// BUILD PHASEA_FIX 20260122041321
+// BUILD PHASEA_FIX 20260122041321
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
