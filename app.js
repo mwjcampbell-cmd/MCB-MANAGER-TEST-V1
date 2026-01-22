@@ -293,7 +293,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD FLEET_ROUTE_FIX 20260122182507
+// BUILD V5_RERENDERFIX 20260122183947
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -386,7 +386,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD FLEET_ROUTE_FIX 20260122182507
+// BUILD V5_RERENDERFIX 20260122183947
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -412,17 +412,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD FLEET_ROUTE_FIX 20260122182507
-// BUILD FLEET_ROUTE_FIX 20260122182507
-// BUILD FLEET_ROUTE_FIX 20260122182507
-// BUILD FLEET_ROUTE_FIX 20260122182507
-// BUILD FLEET_ROUTE_FIX 20260122182507
-// BUILD FLEET_ROUTE_FIX 20260122182507
-// BUILD FLEET_ROUTE_FIX 20260122182507
-// BUILD FLEET_ROUTE_FIX 20260122182507
-// BUILD FLEET_ROUTE_FIX 20260122182507
-// BUILD FLEET_ROUTE_FIX 20260122182507
-// BUILD FLEET_ROUTE_FIX 20260122182507
+// BUILD V5_RERENDERFIX 20260122183947
+// BUILD V5_RERENDERFIX 20260122183947
+// BUILD V5_RERENDERFIX 20260122183947
+// BUILD V5_RERENDERFIX 20260122183947
+// BUILD V5_RERENDERFIX 20260122183947
+// BUILD V5_RERENDERFIX 20260122183947
+// BUILD V5_RERENDERFIX 20260122183947
+// BUILD V5_RERENDERFIX 20260122183947
+// BUILD V5_RERENDERFIX 20260122183947
+// BUILD V5_RERENDERFIX 20260122183947
+// BUILD V5_RERENDERFIX 20260122183947
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -5376,6 +5376,7 @@ function bindEquipmentModal(eqId){
       }
       upsertEquipment(e);
       closeModal();
+      requestRender();
       // re-render equipment tab if visible
       try{
         const r = parseRoute();
@@ -5730,10 +5731,10 @@ function bindFleetEvents(){
   const st = document.getElementById("fleetStatus");
   const add = document.getElementById("btnAddFleet");
   if(q){
-    q.oninput = ()=>{ state.ui.fleetQuery = q.value; saveState(state); document.getElementById("main").innerHTML = renderFleet(); bindFleetEvents(); };
+    q.oninput = ()=>{ state.ui.fleetQuery = q.value; saveState(state); requestRender(); };
   }
   if(st){
-    st.onchange = ()=>{ state.ui.fleetStatus = st.value; saveState(state); document.getElementById("main").innerHTML = renderFleet(); bindFleetEvents(); };
+    st.onchange = ()=>{ state.ui.fleetStatus = st.value; saveState(state); requestRender(); };
   }
   if(add){
     add.onclick = ()=>{ openModal(fleetFormModal(null)); bindFleetModal(null); };
@@ -5759,7 +5760,7 @@ function bindFleetModal(id){
       if(!v.name){ alert("Please enter a name."); return; }
       upsertFleet(v);
       closeModal();
-      try{ const r=parseRoute(); if(r.path==="fleet"){ document.getElementById("main").innerHTML = renderFleet(); bindFleetEvents(); } }catch(e){}
+      try{ const r=parseRoute(); if(r.path==="fleet"){ requestRender(); } }catch(e){}
     };
   }
 }
@@ -5769,10 +5770,10 @@ function bindEquipmentEvents(){
   const st = document.getElementById("equipStatus");
   const add = document.getElementById("btnAddEquip");
   if(q){
-    q.oninput = ()=>{ state.ui.equipQuery = q.value; saveState(state); document.getElementById("main").innerHTML = renderEquipment(); bindEquipmentEvents(); };
+    q.oninput = ()=>{ state.ui.equipQuery = q.value; saveState(state); requestRender(); };
   }
   if(st){
-    st.onchange = ()=>{ state.ui.equipStatus = st.value; saveState(state); document.getElementById("main").innerHTML = renderEquipment(); bindEquipmentEvents(); };
+    st.onchange = ()=>{ state.ui.equipStatus = st.value; saveState(state); requestRender(); };
   }
   if(add){
     add.onclick = ()=>{ openModal(equipmentFormModal(null)); bindEquipModal(null); };
@@ -5795,7 +5796,7 @@ function bindEquipModal(id){
       if(!e.name){ alert("Please enter a name."); return; }
       upsertEquipment(e);
       closeModal();
-      try{ const r=parseRoute(); if(r.path==="equipment"){ document.getElementById("main").innerHTML = renderEquipment(); bindEquipmentEvents(); } }catch(e2){}
+      try{ const r=parseRoute(); if(r.path==="equipment"){ requestRender(); } }catch(e2){}
     };
   }
 }
@@ -5809,3 +5810,18 @@ document.addEventListener("click",(ev)=>{
   if(tab==="fleet") location.hash = "#/fleet";
   if(tab==="equipment") location.hash = "#/equipment";
 });
+
+function requestRender(){
+  try{
+    if(typeof render==="function"){ render(); return; }
+    if(typeof showApp==="function"){ showApp(); return; }
+  }catch(e){ console.warn("requestRender failed", e); }
+}
+
+function postRenderBindings(){
+  try{
+    const r = (typeof parseRoute==="function") ? parseRoute() : {path:""};
+    if(r && r.path==="fleet" && typeof bindFleetEvents==="function") bindFleetEvents();
+    if(r && r.path==="equipment" && typeof bindEquipmentEvents==="function") bindEquipmentEvents();
+  }catch(e){}
+}
