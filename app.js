@@ -42,7 +42,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD HAZARDS_FIX 20260122014736
+// BUILD PHASE_A_PIPELINE 20260122040611
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -135,7 +135,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD HAZARDS_FIX 20260122014736
+// BUILD PHASE_A_PIPELINE 20260122040611
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -161,17 +161,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD HAZARDS_FIX 20260122014736
-// BUILD HAZARDS_FIX 20260122014736
-// BUILD HAZARDS_FIX 20260122014736
-// BUILD HAZARDS_FIX 20260122014736
-// BUILD HAZARDS_FIX 20260122014736
-// BUILD HAZARDS_FIX 20260122014736
-// BUILD HAZARDS_FIX 20260122014736
-// BUILD HAZARDS_FIX 20260122014736
-// BUILD HAZARDS_FIX 20260122014736
-// BUILD HAZARDS_FIX 20260122014736
-// BUILD HAZARDS_FIX 20260122014736
+// BUILD PHASE_A_PIPELINE 20260122040611
+// BUILD PHASE_A_PIPELINE 20260122040611
+// BUILD PHASE_A_PIPELINE 20260122040611
+// BUILD PHASE_A_PIPELINE 20260122040611
+// BUILD PHASE_A_PIPELINE 20260122040611
+// BUILD PHASE_A_PIPELINE 20260122040611
+// BUILD PHASE_A_PIPELINE 20260122040611
+// BUILD PHASE_A_PIPELINE 20260122040611
+// BUILD PHASE_A_PIPELINE 20260122040611
+// BUILD PHASE_A_PIPELINE 20260122040611
+// BUILD PHASE_A_PIPELINE 20260122040611
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -188,7 +188,27 @@ function showApp(){
   const ap=document.getElementById("app"); if(ap) ap.style.display="block";
   render(); try{renderDeletedProjectsUI();}catch(e){}
 }
+
+function ensurePipelineNav(){
+  try{
+    const nav = document.querySelector(".footerbar .nav");
+    if(!nav) return;
+    if(nav.querySelector('[data-nav="pipeline"]')) return;
+    const btn = document.createElement("button");
+    btn.className = "btn";
+    btn.dataset.nav = "pipeline";
+    btn.type = "button";
+    btn.textContent = "Pipeline";
+    // insert before Projects
+    const first = nav.querySelector('[data-nav="projects"]') || nav.firstChild;
+    nav.insertBefore(btn, first);
+    // bind click (same pattern as others)
+    btn.addEventListener("click", ()=> navTo("pipeline"));
+  }catch(e){}
+}
+
 document.addEventListener("DOMContentLoaded", ()=>{
+  try{ensurePipelineNav();}catch(e){}
   
   // Auto-bypass login if login UI is not present
   if(!document.getElementById("loginBtn")){ try{ showApp(); }catch(e){} }
@@ -230,6 +250,7 @@ const defaults = () => ({
   variations: [],
   subbies: [],
   deliveries: [],
+  leads: [],
   inspections: []
 });
 
@@ -267,6 +288,16 @@ function saveSettings(s){
 }
 
 let state = loadState();
+
+// ===== PHASE A: Pipeline + Project Stage =====
+const PROJECT_STAGES = ["Precon","Active Build","Handover","Warranty","Archived"];
+const LEAD_STATUSES = ["New","Contacted","Site visit booked","Quote requested","Quoted","Won","Lost","Converted"];
+// migrate missing fields
+try{
+  state.projects = (state.projects||[]).map(p=> p ? ({...p, stage: p.stage || "Active Build"}) : p);
+  if(!Array.isArray(state.leads)) state.leads = [];
+}catch(e){}
+// ===== /PHASE A =====
 // H&S defaults
 state.hsProfiles = state.hsProfiles || [];
 state.hsInductions = state.hsInductions || [];
@@ -1193,6 +1224,8 @@ function render(){
     b.classList.toggle("primary", b.dataset.nav === path);
   });
 
+  if(path === "pipeline") return renderPipeline(app, params);
+  if(path === "lead") return renderLeadDetail(app, params);
   if(path === "projects") return renderProjects(app, params);
   if(path === "project") return renderProjectDetail(app, params);
   if(path === "tasks") return renderTasks(app, params);
@@ -1328,6 +1361,27 @@ function renderProjects(app){
       </div>
     </div>
   `;
+
+  const renderProjectsList = (arr)=>{
+    const el = $("#projectList");
+    if(!el) return;
+    el.innerHTML = arr.length ? arr.map(p=>projectCard(p)).join("") : `<div class="sub">No projects match your filter.</div>`;
+  };
+  const applyProjectFilters = ()=>{
+    const q = ($("#projSearch")?.value || "").toLowerCase().trim();
+    const stg = $("#projStageFilter")?.value || "";
+    const all = aliveArr(state.projects).slice().sort((a,b)=> (b.updatedAt||"").localeCompare(a.updatedAt||""));
+    const filtered = all.filter(p=>{
+      const s = (p.stage || "Active Build");
+      const hitsStage = !stg || s===stg;
+      const hitsQ = !q || ((p.name||"").toLowerCase().includes(q) || (p.address||"").toLowerCase().includes(q) || (p.clientName||"").toLowerCase().includes(q));
+      return hitsStage && hitsQ;
+    });
+    renderProjectsList(filtered);
+  };
+  if($("#projStageFilter")) $("#projStageFilter").onchange = applyProjectFilters;
+  if($("#projSearch")) $("#projSearch").oninput = applyProjectFilters;
+
   $("#newProject").onclick = ()=> openProjectForm();
   $("#demoBtn").onclick = ()=> loadDemo();
   $$("#projectList .item").forEach(el=>{
@@ -1396,7 +1450,10 @@ function projectCard(p){
     <div class="item" data-id="${p.id}">
       <div class="row space">
         <div>
-          <div class="title">${escapeHtml(p.name || "Untitled project")}</div>
+          <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap">
+            <div class="title">${escapeHtml(p.name || "Untitled project")}</div>
+            <span class="badge">${escapeHtml(p.stage || "Active Build")}</span>
+          </div>
           <div class="meta">${addr}</div>
           <div class="meta">Coords: ${coords}</div>
         </div>
@@ -1412,7 +1469,7 @@ function projectCard(p){
 
 function openProjectForm(p=null){
   const isEdit = !!p;
-  const data = p || { id: uid(), name:"", address:"", clientName:"", clientPhone:"", notes:"", lat:null, lng:null };
+  const data = p || { id: uid(), name:"", address:"", clientName:"", clientPhone:"", notes:"", lat:null, lng:null, stage:"Active Build" };
   showModal(`
     <div class="row space">
       <h2>${isEdit ? "Edit Project" : "New Project"}</h2>
@@ -3305,6 +3362,10 @@ function renderSettings(app){
           <span class="sub">If updates don’t come through, use this to force the newest GitHub build.</span>
         </div>
         <div class="row" style="gap:10px; flex-wrap:wrap">
+        <select class="input" id="projStageFilter" style="min-width:180px">
+          <option value="">All stages</option>
+          ${PROJECT_STAGES.map(s=>`<option value="${s}">${s}</option>`).join("")}
+        </select>
           <button class="btn" id="btnCheckUpdate" type="button">Check for update</button>
           <button class="btn danger" id="btnForceRefresh" type="button">Force refresh (update)</button>
         </div>
@@ -3534,6 +3595,279 @@ function mergeById(local = [], remote = []) {
 })();
 /* ===== END SUBBIES PROJECTID MIGRATION ===== */
 
+
+
+
+// ===== PHASE A: PIPELINE (Leads) =====
+function leadCard(l){
+  const name = escapeHtml(l.clientName || "Unnamed lead");
+  const addr = escapeHtml(l.address || "No address");
+  const status = escapeHtml(l.status || "New");
+  const jobType = l.jobType ? ` • ${escapeHtml(l.jobType)}` : "";
+  return `
+    <div class="item" data-id="${l.id}">
+      <div class="row space">
+        <div>
+          <div class="title">${name}</div>
+          <div class="meta">${addr}</div>
+          <div class="meta">${status}${jobType}</div>
+        </div>
+        <div class="row">
+          <button class="btn small" data-action="open" data-id="${l.id}" type="button">Open</button>
+          <button class="btn small" data-action="edit" data-id="${l.id}" type="button">Edit</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderPipeline(app){
+  setHeader("Pipeline");
+  const leads = aliveArr(state.leads).slice().sort((a,b)=> (b.updatedAt||"").localeCompare(a.updatedAt||""));
+  app.innerHTML = `
+    <div class="card">
+      <div class="row space">
+        <h2>Leads</h2>
+        <button class="btn primary" id="newLead" type="button">New Lead</button>
+      </div>
+      <div class="sub">Track enquiries from first contact through to quote and conversion. Leads are local-only for now (sync later).</div>
+      <hr/>
+      <div class="row" style="gap:10px;flex-wrap:wrap">
+        <select class="input" id="leadStatusFilter" style="min-width:200px">
+          <option value="">All statuses</option>
+          ${LEAD_STATUSES.map(s=>`<option value="${s}">${s}</option>`).join("")}
+        </select>
+        <input class="input" id="leadSearch" placeholder="Search leads (name / address)" style="flex:1;min-width:220px"/>
+      </div>
+      <div class="list" id="leadList">
+        ${leads.length ? leads.map(l=>leadCard(l)).join("") : `<div class="sub">No leads yet. Add your first enquiry.</div>`}
+      </div>
+    </div>
+  `;
+  $("#newLead").onclick = ()=> openLeadForm({});
+  const renderList = (arr)=>{
+    const el=$("#leadList"); if(!el) return;
+    el.innerHTML = arr.length ? arr.map(l=>leadCard(l)).join("") : `<div class="sub">No leads match your filter.</div>`;
+  };
+  const apply = ()=>{
+    const st = $("#leadStatusFilter")?.value || "";
+    const q = ($("#leadSearch")?.value || "").toLowerCase().trim();
+    const all = aliveArr(state.leads).slice().sort((a,b)=> (b.updatedAt||"").localeCompare(a.updatedAt||""));
+    const filtered = all.filter(l=>{
+      const hitsSt = !st || (l.status||"New")===st;
+      const hitsQ = !q || ((l.clientName||"").toLowerCase().includes(q) || (l.address||"").toLowerCase().includes(q));
+      return hitsSt && hitsQ;
+    });
+    renderList(filtered);
+  };
+  if($("#leadStatusFilter")) $("#leadStatusFilter").onchange = apply;
+  if($("#leadSearch")) $("#leadSearch").oninput = apply;
+
+  // delegated actions
+  $("#leadList").onclick = (e)=>{
+    const btn = e.target.closest("button");
+    if(!btn) return;
+    const id = btn.dataset.id;
+    if(btn.dataset.action==="open") return navTo("lead",{id});
+    if(btn.dataset.action==="edit"){
+      const l = state.leads.find(x=>x && x.id===id);
+      if(l) openLeadForm(l);
+    }
+  };
+}
+
+function renderLeadDetail(app, params){
+  const id = params.id;
+  const l = (state.leads||[]).find(x=>x && x.id===id);
+  if(!l){ app.innerHTML = `<div class="card"><div class="sub">Lead not found.</div></div>`; return; }
+  app.innerHTML = `
+    <div class="card">
+      <div class="row space">
+        <div>
+          <h2>${escapeHtml(l.clientName||"Unnamed lead")}</h2>
+          <div class="sub">${escapeHtml(l.status||"New")}</div>
+        </div>
+        <div class="row" style="gap:10px;flex-wrap:wrap">
+          <button class="btn" id="editLead" type="button">Edit</button>
+          <button class="btn primary" id="convertLead" type="button">Convert to job</button>
+          <button class="btn danger" id="deleteLead" type="button">Delete</button>
+        </div>
+      </div>
+      <hr/>
+      <div class="grid two">
+        <div>
+          <div class="label">Address</div>
+          <div class="meta">${escapeHtml(l.address||"—")}</div>
+          <div style="height:8px"></div>
+          <div class="label">Contact</div>
+          <div class="meta">${escapeHtml(l.phone||"")}${l.email ? ` • ${escapeHtml(l.email)}`:""}</div>
+          <div style="height:8px"></div>
+          <div class="label">Lead source</div>
+          <div class="meta">${escapeHtml(l.leadSource||"—")}</div>
+          <div style="height:8px"></div>
+          <div class="label">Job type</div>
+          <div class="meta">${escapeHtml(l.jobType||"—")}</div>
+          <div style="height:8px"></div>
+          <div class="label">Budget</div>
+          <div class="meta">${escapeHtml(l.budget||"—")}</div>
+        </div>
+        <div>
+          <div class="label">Notes</div>
+          <div class="meta" style="white-space:pre-wrap">${escapeHtml(l.notes||"")}</div>
+          <div style="height:8px"></div>
+          <div class="label">Photos taken</div>
+          <div class="meta">${(l.photosTaken||photosTakenFromJson(l.photosJson)) ? "Yes" : "No"}</div>
+        </div>
+      </div>
+    </div>
+  `;
+  $("#editLead").onclick = ()=> openLeadForm(l);
+  $("#deleteLead").onclick = ()=>{
+    if(!confirm("Delete this lead?")) return;
+    state.leads = softDeleteById(state.leads, l.id);
+    saveState(state);
+    navTo("pipeline");
+  };
+  $("#convertLead").onclick = ()=> convertLeadToProject(l.id);
+}
+
+function openLeadForm(seed={}){
+  const isEdit = !!seed.id;
+  const l = isEdit ? seed : {
+    id: uid(),
+    status: "New",
+    clientName: "",
+    phone: "",
+    email: "",
+    address: "",
+    leadSource: "",
+    jobType: "",
+    budget: "",
+    notes: "",
+    photosTaken: false,
+    photosJson: "[]",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    deletedAt: null
+  };
+  showModal(`
+    <div class="row space">
+      <h2>${isEdit ? "Edit Lead" : "New Lead"}</h2>
+      <button class="btn" id="closeLeadModal" type="button">Close</button>
+    </div>
+    <hr/>
+    <label class="label">Status</label>
+    <select class="input" id="leadStatus">
+      ${LEAD_STATUSES.map(s=>`<option value="${s}" ${l.status===s?"selected":""}>${s}</option>`).join("")}
+    </select>
+
+    <label class="label">Client name</label>
+    <input class="input" id="leadClientName" value="${escapeAttr(l.clientName||"")}" />
+
+    <div class="grid two">
+      <div>
+        <label class="label">Phone</label>
+        <input class="input" id="leadPhone" value="${escapeAttr(l.phone||"")}" />
+      </div>
+      <div>
+        <label class="label">Email</label>
+        <input class="input" id="leadEmail" value="${escapeAttr(l.email||"")}" />
+      </div>
+    </div>
+
+    <label class="label">Address</label>
+    <input class="input" id="leadAddress" value="${escapeAttr(l.address||"")}" placeholder="Site address" />
+
+    <div class="grid two">
+      <div>
+        <label class="label">Lead source</label>
+        <input class="input" id="leadSource" value="${escapeAttr(l.leadSource||"")}" placeholder="Referral, Website, etc." />
+      </div>
+      <div>
+        <label class="label">Job type</label>
+        <input class="input" id="leadJobType" value="${escapeAttr(l.jobType||"")}" placeholder="Renovation, deck, new build…" />
+      </div>
+    </div>
+
+    <label class="label">Budget (optional)</label>
+    <input class="input" id="leadBudget" value="${escapeAttr(l.budget||"")}" placeholder="$" />
+
+    <label class="label">Notes</label>
+    <textarea class="input" id="leadNotes" rows="4">${escapeHtml(l.notes||"")}</textarea>
+
+    <div class="row" style="gap:10px; align-items:center; margin-top:10px">
+      <input type="checkbox" id="leadPhotosTaken" ${ (l.photosTaken||photosTakenFromJson(l.photosJson)) ? "checked":"" } />
+      <label for="leadPhotosTaken" class="label" style="margin:0">Photos taken</label>
+    </div>
+
+    <div class="row" style="gap:10px; margin-top:14px; justify-content:flex-end">
+      <button class="btn" id="cancelLead" type="button">Cancel</button>
+      <button class="btn primary" id="saveLead" type="button">${isEdit ? "Save" : "Create"}</button>
+    </div>
+  `);
+  $("#closeLeadModal").onclick = closeModal;
+  $("#cancelLead").onclick = closeModal;
+  $("#saveLead").onclick = ()=>{
+    const now = new Date().toISOString();
+    const upd = {
+      ...l,
+      status: $("#leadStatus").value,
+      clientName: $("#leadClientName").value.trim(),
+      phone: $("#leadPhone").value.trim(),
+      email: $("#leadEmail").value.trim(),
+      address: $("#leadAddress").value.trim(),
+      leadSource: $("#leadSource").value.trim(),
+      jobType: $("#leadJobType").value.trim(),
+      budget: $("#leadBudget").value.trim(),
+      notes: $("#leadNotes").value,
+      photosTaken: !!$("#leadPhotosTaken").checked,
+      photosJson: ($("#leadPhotosTaken").checked ? "true" : "[]"),
+      updatedAt: now
+    };
+    if(!upd.clientName && !upd.address){
+      alert("Please enter at least a client name or an address.");
+      return;
+    }
+    if(isEdit){
+      state.leads = (state.leads||[]).map(x=> x && x.id===upd.id ? upd : x);
+    } else {
+      state.leads = [...(state.leads||[]), upd];
+    }
+    saveState(state);
+    closeModal();
+    // stay on pipeline
+    if(location.hash.startsWith("#lead")) navTo("lead",{id: upd.id});
+    else render();
+  };
+}
+
+function convertLeadToProject(leadId){
+  const lead = (state.leads||[]).find(x=>x && x.id===leadId);
+  if(!lead) return;
+  if(!confirm("Convert this lead into a job (project)?")) return;
+  const now = new Date().toISOString();
+  const projId = uid();
+  const project = {
+    id: projId,
+    name: (lead.clientName ? `${lead.clientName} - ${lead.jobType||"Job"}` : (lead.jobType||"New Job")).trim(),
+    address: lead.address || "",
+    clientName: lead.clientName || "",
+    clientPhone: lead.phone || "",
+    notes: lead.notes || "",
+    lat: null, lng: null,
+    stage: "Precon",
+    leadId: lead.id,
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null
+  };
+  state.projects = [...(state.projects||[]), project];
+  state.leads = (state.leads||[]).map(x=> x && x.id===lead.id ? ({...x, status:"Converted", projectId: projId, updatedAt: now}) : x);
+  saveState(state);
+  closeModal();
+  navTo("project",{id: projId});
+}
+// ===== /PHASE A =====
 
 
 // ===== SOFT DELETE (sync-safe) =====
