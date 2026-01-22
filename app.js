@@ -293,7 +293,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
+// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -386,7 +386,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
+// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -412,17 +412,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
-// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
-// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
-// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
-// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
-// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
-// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
-// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
-// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
-// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
-// BUILD EQUIPMENT_FLEET_C_BOTH 20260122101839
+// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
+// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
+// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
+// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
+// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
+// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
+// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
+// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
+// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
+// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
+// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -1835,7 +1835,8 @@ function render(){
   if(path === "diary") return renderDiary(app, params);
   if(path === "reports") return renderReports(app, params);
   if(path === "hs") return renderHSPage(app, params);
-  if(path === "settings") return renderSettings(app, params);
+    if(path === "equipment") return renderEquipmentPage(app, params);
+if(path === "settings") return renderSettings(app, params);
   renderDeletedProjectsUI();
   // fallback
   navTo("projects");
@@ -1932,6 +1933,15 @@ $("#importFile").addEventListener("change", async (e)=>{
 });
 
 // ----------------- Projects -----------------
+
+function renderEquipmentPage(app){
+  setHeader("Equipment");
+  // Render company-wide equipment register
+  app.innerHTML = renderEquipment();
+  // renderEquipment writes a full page; we still need to bind events
+  try{ bindEquipmentEvents(); }catch(e){}
+}
+
 function renderProjects(app){
   setHeader("Projects");
   const list = aliveArr(state.projects)
