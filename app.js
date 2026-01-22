@@ -303,7 +303,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
+// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -396,7 +396,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
+// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -427,17 +427,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
-// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
-// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
-// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
-// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
-// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
-// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
-// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
-// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
-// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
-// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
+// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
+// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
+// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
+// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
+// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
+// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
+// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
+// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
+// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
+// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
+// BUILD V11_TASK_DIARY_SCROLLDETAIL 20260122220546
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -3063,7 +3063,13 @@ function renderTasks(app, params){
       body.innerHTML = t ? renderTaskDetailPane(t) : `<div class="sub">Task not found.</div>`;
       if(t) bindTaskDetailPane(t, projectId);
     }
-  };
+  
+    // make it obvious something happened
+    try{
+      const card = document.getElementById("taskDetailCard");
+      if(card) card.scrollIntoView({behavior:"smooth", block:"start"});
+    }catch(e){}
+};
 
   if(selectedTask){
     bindTaskDetailPane(selectedTask, projectId);
@@ -3367,7 +3373,13 @@ function renderDiary(app, params){
       body.innerHTML = d ? renderDiaryDetailPane(d) : `<div class="sub">Entry not found.</div>`;
       if(d) bindDiaryDetailPane(d);
     }
-  };
+  
+    // make it obvious something happened
+    try{
+      const card = document.getElementById("diaryDetailCard");
+      if(card) card.scrollIntoView({behavior:"smooth", block:"start"});
+    }catch(e){}
+};
 
   if(selectedEntry){
     bindDiaryDetailPane(selectedEntry);
