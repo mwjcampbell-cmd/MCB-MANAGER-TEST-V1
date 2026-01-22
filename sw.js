@@ -1,4 +1,4 @@
-const CACHE="mcb-cache-eq-modalfix-20260122104158";
+const CACHE="mcb-cache-ultra-20260122171219-eq-modalfix-20260122104158";
 const ASSETS = [
   "./",
   "./index.html",
