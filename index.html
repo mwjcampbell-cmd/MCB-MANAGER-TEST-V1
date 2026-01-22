@@ -27,17 +27,33 @@
 </div>
 </div>
 <main id="app"></main>
+  <!-- Floating menu button -->
+  <button class="fab noPrint" id="navFab" type="button" aria-label="Menu" title="Menu">
+    <span class="fabIcon">≡</span>
+  </button>
 
-
-  <div class="footerbar noPrint">
-    <div class="nav">
-      <button class="btn" data-nav="projects">Projects</button>
-      <button class="btn" data-nav="tasks">Tasks</button>
-      <button class="btn" data-nav="diary">Diary</button>
-      <button class="btn" data-nav="reports">Reports</button>
-      <button class="btn" data-nav="settings">Settings</button>
+  <!-- Navigation menu -->
+  <div class="menuback noPrint" id="navMenuBack" aria-hidden="true">
+    <div class="menupanel" role="dialog" aria-modal="true" aria-label="Navigation menu">
+      <div class="menuhead">
+        <div class="menutitle">Menu</div>
+        <button class="btn small" id="navMenuClose" type="button">Close</button>
+      </div>
+      <div class="menugrid" id="navMenuGrid">
+        <button class="menuitem" type="button" data-nav="pipeline">Pipeline</button>
+        <button class="menuitem" type="button" data-nav="projects">Projects</button>
+        <button class="menuitem" type="button" data-nav="tasks">Tasks</button>
+        <button class="menuitem" type="button" data-nav="diary">Diary</button>
+        <button class="menuitem" type="button" data-nav="reports">Reports</button>
+        <button class="menuitem" type="button" data-nav="hs">H&amp;S</button>
+        <button class="menuitem" type="button" data-nav="equipment">Equipment</button>
+        <button class="menuitem" type="button" data-nav="fleet">Fleet</button>
+        <button class="menuitem" type="button" data-nav="settings">Settings</button>
+      </div>
+      <div class="menusub">Tap anywhere outside to close.</div>
     </div>
   </div>
+</div>
 
   <div class="modalback" id="modalBack">
     <div class="modal" id="modal"></div>
@@ -60,7 +76,7 @@
 })();
 </script>
 
-  <script src="./app.js?v=20260122223209"></script>
+  <script src="./app.js?v=20260122232949"></script>
 
 
 

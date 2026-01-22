@@ -303,7 +303,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
+// BUILD V15_POPUP_MENU 20260122232949
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -396,7 +396,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
+// BUILD V15_POPUP_MENU 20260122232949
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -427,17 +427,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
-// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
-// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
-// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
-// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
-// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
-// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
-// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
-// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
-// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
-// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
+// BUILD V15_POPUP_MENU 20260122232949
+// BUILD V15_POPUP_MENU 20260122232949
+// BUILD V15_POPUP_MENU 20260122232949
+// BUILD V15_POPUP_MENU 20260122232949
+// BUILD V15_POPUP_MENU 20260122232949
+// BUILD V15_POPUP_MENU 20260122232949
+// BUILD V15_POPUP_MENU 20260122232949
+// BUILD V15_POPUP_MENU 20260122232949
+// BUILD V15_POPUP_MENU 20260122232949
+// BUILD V15_POPUP_MENU 20260122232949
+// BUILD V15_POPUP_MENU 20260122232949
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -529,7 +529,9 @@ function ensurePipelineNav(){
 
 document.addEventListener("DOMContentLoaded", ()=>{
   try{ initTheme(); }catch(e){}
-    try{
+    
+  try{ initNavMenu(); }catch(e){}
+try{
       const lu = document.getElementById('lastUpdateStamp');
       if(lu) lu.textContent = getLastUpdateStamp();
     }catch(e){}
@@ -6375,4 +6377,38 @@ function updateDiaryDetailPanel(d, projectId){
   body.innerHTML = (typeof renderDiaryDetailPane==="function") ? renderDiaryDetailPane(d) : "";
   try{ if(typeof bindDiaryDetailPane==="function") bindDiaryDetailPane(d, projectId); }catch(e){}
   try{ body.classList.remove("flash"); void body.offsetWidth; body.classList.add("flash"); }catch(e){}
+}
+
+function initNavMenu(){
+  const fab = document.getElementById("navFab");
+  const back = document.getElementById("navMenuBack");
+  const close = document.getElementById("navMenuClose");
+  if(!fab || !back) return;
+
+  const openMenu = ()=>{
+    back.classList.add("show");
+    back.setAttribute("aria-hidden","false");
+  };
+  const closeMenu = ()=>{
+    back.classList.remove("show");
+    back.setAttribute("aria-hidden","true");
+  };
+
+  fab.addEventListener("click", openMenu);
+  if(close) close.addEventListener("click", closeMenu);
+
+  back.addEventListener("click", (e)=>{
+    // close if clicked outside panel
+    if(e.target === back) closeMenu();
+  });
+
+  // menu item navigation
+  back.addEventListener("click", (e)=>{
+    const btn = e.target && e.target.closest ? e.target.closest("[data-nav]") : null;
+    if(!btn) return;
+    const route = btn.getAttribute("data-nav");
+    if(!route) return;
+    closeMenu();
+    try{ navTo(route); }catch(err){}
+  });
 }
