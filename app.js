@@ -1,5 +1,33 @@
 
 
+function setLeadTab(tab){
+  try{
+    const btnO = document.getElementById("leadTabOverview");
+    const btnP = document.getElementById("leadTabPrecon");
+    const ov = document.getElementById("leadOverview");
+    const pc = document.getElementById("preconCard");
+    if(!ov || !pc) return;
+    const isPre = tab === "precon";
+    ov.style.display = isPre ? "none" : "";
+    pc.style.display = isPre ? "" : "none";
+    if(btnO) btnO.classList.toggle("active", !isPre);
+    if(btnP) btnP.classList.toggle("active", isPre);
+    // remember last tab for this session
+    window.__mcbLeadTab = tab;
+  }catch(e){ console.warn(e); }
+}
+
+// Delegated tab handling (survives re-renders)
+document.addEventListener("click", (ev)=>{
+  const t = ev.target && (ev.target.closest ? ev.target.closest("#leadTabOverview,#leadTabPrecon") : null);
+  if(!t) return;
+  ev.preventDefault();
+  if(t.id === "leadTabOverview") setLeadTab("overview");
+  if(t.id === "leadTabPrecon") setLeadTab("precon");
+});
+
+
+
 function defaultPreconChecklist(){
   return [
     { key:"client_details_confirmed", label:"Client details confirmed (names/phone/email)", done:false },
@@ -154,7 +182,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD PHASEA1_PRECON_NZ_TABS_FIX 20260122052515
+// BUILD PRECON_TABS_WORKING 20260122053036
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -247,7 +275,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD PHASEA1_PRECON_NZ_TABS_FIX 20260122052515
+// BUILD PRECON_TABS_WORKING 20260122053036
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -273,17 +301,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD PHASEA1_PRECON_NZ_TABS_FIX 20260122052515
-// BUILD PHASEA1_PRECON_NZ_TABS_FIX 20260122052515
-// BUILD PHASEA1_PRECON_NZ_TABS_FIX 20260122052515
-// BUILD PHASEA1_PRECON_NZ_TABS_FIX 20260122052515
-// BUILD PHASEA1_PRECON_NZ_TABS_FIX 20260122052515
-// BUILD PHASEA1_PRECON_NZ_TABS_FIX 20260122052515
-// BUILD PHASEA1_PRECON_NZ_TABS_FIX 20260122052515
-// BUILD PHASEA1_PRECON_NZ_TABS_FIX 20260122052515
-// BUILD PHASEA1_PRECON_NZ_TABS_FIX 20260122052515
-// BUILD PHASEA1_PRECON_NZ_TABS_FIX 20260122052515
-// BUILD PHASEA1_PRECON_NZ_TABS_FIX 20260122052515
+// BUILD PRECON_TABS_WORKING 20260122053036
+// BUILD PRECON_TABS_WORKING 20260122053036
+// BUILD PRECON_TABS_WORKING 20260122053036
+// BUILD PRECON_TABS_WORKING 20260122053036
+// BUILD PRECON_TABS_WORKING 20260122053036
+// BUILD PRECON_TABS_WORKING 20260122053036
+// BUILD PRECON_TABS_WORKING 20260122053036
+// BUILD PRECON_TABS_WORKING 20260122053036
+// BUILD PRECON_TABS_WORKING 20260122053036
+// BUILD PRECON_TABS_WORKING 20260122053036
+// BUILD PRECON_TABS_WORKING 20260122053036
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
