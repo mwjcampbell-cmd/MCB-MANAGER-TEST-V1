@@ -282,7 +282,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD 12C1_PROGRAMME_REMOVABLE_V4 20260122082128
+// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -375,7 +375,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD 12C1_PROGRAMME_REMOVABLE_V4 20260122082128
+// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -401,17 +401,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD 12C1_PROGRAMME_REMOVABLE_V4 20260122082128
-// BUILD 12C1_PROGRAMME_REMOVABLE_V4 20260122082128
-// BUILD 12C1_PROGRAMME_REMOVABLE_V4 20260122082128
-// BUILD 12C1_PROGRAMME_REMOVABLE_V4 20260122082128
-// BUILD 12C1_PROGRAMME_REMOVABLE_V4 20260122082128
-// BUILD 12C1_PROGRAMME_REMOVABLE_V4 20260122082128
-// BUILD 12C1_PROGRAMME_REMOVABLE_V4 20260122082128
-// BUILD 12C1_PROGRAMME_REMOVABLE_V4 20260122082128
-// BUILD 12C1_PROGRAMME_REMOVABLE_V4 20260122082128
-// BUILD 12C1_PROGRAMME_REMOVABLE_V4 20260122082128
-// BUILD 12C1_PROGRAMME_REMOVABLE_V4 20260122082128
+// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
+// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
+// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
+// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
+// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
+// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
+// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
+// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
+// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
+// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
+// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -4894,7 +4894,7 @@ document.addEventListener("click", (ev)=>{
     saveProgrammeTasksForProject(projectId, tasks);
     // refresh current view
     if(window.currentProject && String(window.currentProject.id)===String(projectId)){
-      renderProgrammeForProject(projectId); renderRemovedProgrammeTasks(projectId);
+      refreshProgrammeTab(projectId);
     } else {
       renderRemovedProgrammeTasks(projectId);
     }
@@ -4903,3 +4903,35 @@ document.addEventListener("click", (ev)=>{
     alert("Could not update programme task.");
   }
 });
+
+function refreshProgrammeTab(projectId){
+  try{
+    const params = parseHashParams();
+    if(params.path!=="project") return;
+    if(String(params.id)!==String(projectId)) return;
+    if((params.tab||"overview")!=="programme") return;
+    const p = projectById(projectId);
+    const wrap = document.getElementById("tabContent");
+    if(!p || !wrap) return;
+    wrap.innerHTML = projectProgramme(p);
+    bindProjectTabEvents(p, "programme");
+    renderRemovedProgrammeTasks(projectId);
+  }catch(e){ console.warn(e); }
+}
+
+function parseHashParams(){
+  // very small hash router parser for refresh helpers
+  const h = (location.hash||"").replace(/^#\/?/, "");
+  const [path, qs] = h.split("?");
+  const params = { path: path || "" };
+  if(qs){
+    qs.split("&").forEach(kv=>{
+      const [k,v] = kv.split("=");
+      if(k) params[decodeURIComponent(k)] = decodeURIComponent(v||"");
+    });
+  }
+  // support #/project?id=...
+  return params;
+}
+
+try{ localStorage.setItem("mcb_last_update_applied","2026-01-22T09:06:55.786767"); }catch(e){}
