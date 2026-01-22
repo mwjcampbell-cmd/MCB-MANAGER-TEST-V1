@@ -1,5 +1,51 @@
 
 
+function defaultPreconChecklist(){
+  return [
+    { key:"scope_confirmed", label:"Scope confirmed", done:false },
+    { key:"site_measure_confirmed", label:"Site measure confirmed", done:false },
+    { key:"plans_received", label:"Plans / drawings received", done:false },
+    { key:"engineering_required", label:"Engineering required?", done:false, kind:"choice", value:"Unknown", choices:["Unknown","Yes","No"] },
+    { key:"consent_required", label:"Building consent required?", done:false, kind:"choice", value:"Unknown", choices:["Unknown","Yes","No"] },
+    { key:"designer_engaged", label:"Designer/architect engaged", done:false },
+    { key:"utility_locates", label:"Services / utility locates done", done:false },
+    { key:"hazards_known", label:"Known site hazards recorded", done:false },
+    { key:"long_lead_items", label:"Long-lead items identified", done:false },
+    { key:"supplier_accounts", label:"Supplier accounts / lead times checked", done:false },
+    { key:"client_decisions", label:"Client selections / decisions list started", done:false },
+    { key:"prestart_meeting", label:"Pre-start meeting booked", done:false },
+    { key:"programme_draft", label:"Programme draft created", done:false },
+    { key:"ccc_plan_selected", label:"CCC inspection plan selected", done:false }
+  ];
+}
+
+function parseJsonSafe(v, fallback){
+  try{
+    if(v === null || v === undefined || v === "") return fallback;
+    if(typeof v === "object") return v;
+    return JSON.parse(v);
+  }catch(e){
+    return fallback;
+  }
+}
+
+function preconChecklistFromLead(lead){
+  const raw = lead && (lead.preconChecklistJson || lead.preconChecklist || lead.preconChecklistJSON);
+  const parsed = parseJsonSafe(raw, null);
+  if(Array.isArray(parsed) && parsed.length) return parsed;
+  return defaultPreconChecklist();
+}
+
+function preconProgress(list){
+  if(!Array.isArray(list) || !list.length) return {done:0,total:0,pct:0};
+  const total = list.length;
+  const done = list.filter(i=>!!i.done).length;
+  const pct = total ? Math.round((done/total)*100) : 0;
+  return {done,total,pct};
+}
+
+
+
 function photosTakenFromJson(v){
   try{
     if(!v) return false;
@@ -73,7 +119,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD PHASEA_FIX2 20260122042037
+// BUILD PHASEA1_PRECON 20260122042833
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -166,7 +212,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD PHASEA_FIX2 20260122042037
+// BUILD PHASEA1_PRECON 20260122042833
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -192,17 +238,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD PHASEA_FIX2 20260122042037
-// BUILD PHASEA_FIX2 20260122042037
-// BUILD PHASEA_FIX2 20260122042037
-// BUILD PHASEA_FIX2 20260122042037
-// BUILD PHASEA_FIX2 20260122042037
-// BUILD PHASEA_FIX2 20260122042037
-// BUILD PHASEA_FIX2 20260122042037
-// BUILD PHASEA_FIX2 20260122042037
-// BUILD PHASEA_FIX2 20260122042037
-// BUILD PHASEA_FIX2 20260122042037
-// BUILD PHASEA_FIX2 20260122042037
+// BUILD PHASEA1_PRECON 20260122042833
+// BUILD PHASEA1_PRECON 20260122042833
+// BUILD PHASEA1_PRECON 20260122042833
+// BUILD PHASEA1_PRECON 20260122042833
+// BUILD PHASEA1_PRECON 20260122042833
+// BUILD PHASEA1_PRECON 20260122042833
+// BUILD PHASEA1_PRECON 20260122042833
+// BUILD PHASEA1_PRECON 20260122042833
+// BUILD PHASEA1_PRECON 20260122042833
+// BUILD PHASEA1_PRECON 20260122042833
+// BUILD PHASEA1_PRECON 20260122042833
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -3652,6 +3698,90 @@ function leadCard(l){
   `;
 }
 
+function renderPreconItemRow(item, idx){
+  const id = `precon_${item.key}`;
+  const checked = item.done ? "checked" : "";
+  const choice = item.kind === "choice"
+    ? `<select class="input" data-precon-choice="${idx}" style="min-height:44px">
+        ${item.choices.map(c=>`<option value="${escapeAttr(c)}" ${c===item.value?"selected":""}>${escapeAttr(c)}</option>`).join("")}
+       </select>`
+    : "";
+  return `
+    <div class="listItem" style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px; margin-bottom:10px">
+      <label style="display:flex; align-items:center; gap:10px; flex:1; cursor:pointer">
+        <input type="checkbox" data-precon-check="${idx}" ${checked} style="transform:scale(1.1)"/>
+        <div style="display:flex; flex-direction:column; gap:4px">
+          <div style="font-weight:700">${escapeAttr(item.label)}</div>
+          ${item.kind==="choice" ? `<div class="smallmuted">Answer: <span style="opacity:.9">${escapeAttr(item.value||"Unknown")}</span></div>` : ""}
+        </div>
+      </label>
+      ${choice}
+    </div>
+  `;
+}
+
+function bindLeadPrecon(lead){
+  const host = document.getElementById("preconList");
+  const badge = document.getElementById("preconProgressBadge");
+  if(!host || !badge) return;
+
+  let list = preconChecklistFromLead(lead);
+
+  const refresh = ()=>{
+    host.innerHTML = list.map((it, i)=>renderPreconItemRow(it, i)).join("");
+    const prog = preconProgress(list);
+    badge.textContent = `${prog.done}/${prog.total} (${prog.pct}%)`;
+    // bind
+    host.querySelectorAll("[data-precon-check]").forEach(el=>{
+      el.onchange = ()=>{
+        const i = Number(el.getAttribute("data-precon-check"));
+        list[i].done = !!el.checked;
+        save();
+        refresh();
+      };
+    });
+    host.querySelectorAll("[data-precon-choice]").forEach(el=>{
+      el.onchange = ()=>{
+        const i = Number(el.getAttribute("data-precon-choice"));
+        list[i].value = el.value;
+        // if user answers, consider it done when not Unknown
+        if(list[i].kind==="choice") list[i].done = (el.value !== "Unknown");
+        save();
+        refresh();
+      };
+    });
+  };
+
+  const save = ()=>{
+    try{
+      // persist back onto lead record (local-only lead store)
+      lead.preconChecklistJson = JSON.stringify(list);
+      updateLead(lead);
+    }catch(e){
+      console.warn("precon save failed", e);
+    }
+  };
+
+  const markAll = document.getElementById("preconMarkAll");
+  if(markAll) markAll.onclick = ()=>{
+    list = list.map(it=>{
+      const c = {...it};
+      c.done = true;
+      if(c.kind==="choice" && (!c.value || c.value==="Unknown")) c.value = "Yes";
+      return c;
+    });
+    save(); refresh();
+  };
+
+  const reset = document.getElementById("preconReset");
+  if(reset) reset.onclick = ()=>{
+    list = defaultPreconChecklist();
+    save(); refresh();
+  };
+
+  refresh();
+}
+
 function renderPipeline(app){
   setHeader("Pipeline");
   const leads = aliveArr(state.leads).slice().sort((a,b)=> (b.updatedAt||"").localeCompare(a.updatedAt||""));
@@ -3751,7 +3881,21 @@ function renderLeadDetail(app, params){
         </div>
       </div>
     </div>
-  `;
+  
+      <div class="card" style="margin-top:12px" id="preconCard">
+        <div class="row space">
+          <h3>Preconstruction checklist</h3>
+          <span class="badge" id="preconProgressBadge">0/0</span>
+        </div>
+        <div class="sub" style="margin-top:6px">Track readiness before converting to a live job.</div>
+        <div style="margin-top:12px" id="preconList"></div>
+        <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:12px">
+          <button class="btn" type="button" id="preconMarkAll">Mark all complete</button>
+          <button class="btn ghost" type="button" id="preconReset">Reset</button>
+        </div>
+        <div class="smallmuted" style="margin-top:8px">This is stored inside the lead as <code>preconChecklistJson</code> (local-only for now).</div>
+      </div>
+`;
   $("#editLead").onclick = ()=> openLeadForm(l);
   $("#deleteLead").onclick = ()=>{
     if(!confirm("Delete this lead?")) return;
