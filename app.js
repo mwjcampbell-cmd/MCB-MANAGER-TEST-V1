@@ -1,5 +1,24 @@
 
 
+function photosTakenFromJson(v){
+  try{
+    if(!v) return false;
+    if(typeof v === "boolean") return v;
+    if(typeof v === "string"){
+      if(v === "true" || v === "1") return true;
+      if(v === "false" || v === "0") return false;
+      const parsed = JSON.parse(v);
+      if(Array.isArray(parsed)) return parsed.length > 0;
+      if(typeof parsed === "object") return Object.keys(parsed).length > 0;
+    }
+    if(Array.isArray(v)) return v.length > 0;
+    if(typeof v === "object") return Object.keys(v).length > 0;
+  }catch(e){}
+  return false;
+}
+
+
+
 function escapeAttr(v){
   if(v === null || v === undefined) return "";
   return String(v)
@@ -54,7 +73,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD PHASEA_FIX 20260122041321
+// BUILD PHASEA_FIX2 20260122042037
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -147,7 +166,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD PHASEA_FIX 20260122041321
+// BUILD PHASEA_FIX2 20260122042037
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -173,17 +192,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD PHASEA_FIX 20260122041321
-// BUILD PHASEA_FIX 20260122041321
-// BUILD PHASEA_FIX 20260122041321
-// BUILD PHASEA_FIX 20260122041321
-// BUILD PHASEA_FIX 20260122041321
-// BUILD PHASEA_FIX 20260122041321
-// BUILD PHASEA_FIX 20260122041321
-// BUILD PHASEA_FIX 20260122041321
-// BUILD PHASEA_FIX 20260122041321
-// BUILD PHASEA_FIX 20260122041321
-// BUILD PHASEA_FIX 20260122041321
+// BUILD PHASEA_FIX2 20260122042037
+// BUILD PHASEA_FIX2 20260122042037
+// BUILD PHASEA_FIX2 20260122042037
+// BUILD PHASEA_FIX2 20260122042037
+// BUILD PHASEA_FIX2 20260122042037
+// BUILD PHASEA_FIX2 20260122042037
+// BUILD PHASEA_FIX2 20260122042037
+// BUILD PHASEA_FIX2 20260122042037
+// BUILD PHASEA_FIX2 20260122042037
+// BUILD PHASEA_FIX2 20260122042037
+// BUILD PHASEA_FIX2 20260122042037
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
