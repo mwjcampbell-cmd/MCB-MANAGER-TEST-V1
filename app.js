@@ -1,5 +1,30 @@
 
 
+function setLeadTab2(tab){
+  const btnO = document.getElementById("tabLeadOverview");
+  const btnP = document.getElementById("tabLeadPrecon");
+  const ov = document.getElementById("leadOverview");
+  const pc = document.getElementById("preconCard");
+  if(!ov || !pc) return;
+  const isPre = tab === "precon";
+  ov.style.display = isPre ? "none" : "";
+  pc.style.display = isPre ? "" : "none";
+  if(btnO) btnO.classList.toggle("active", !isPre);
+  if(btnP) btnP.classList.toggle("active", isPre);
+  window.__mcbLeadTab = tab;
+}
+
+// Delegated click for lead tabs
+document.addEventListener("click", (ev)=>{
+  const b = ev.target && ev.target.closest ? ev.target.closest("#tabLeadOverview,#tabLeadPrecon") : null;
+  if(!b) return;
+  ev.preventDefault();
+  if(b.id === "tabLeadOverview") setLeadTab2("overview");
+  if(b.id === "tabLeadPrecon") setLeadTab2("precon");
+});
+
+
+
 function setLeadTab(tab){
   try{
     const btnO = document.getElementById("leadTabOverview");
@@ -182,7 +207,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD PRECON_TABS_WORKING 20260122053036
+// BUILD PRECON_TABS_WORKING2 20260122054731
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -275,7 +300,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD PRECON_TABS_WORKING 20260122053036
+// BUILD PRECON_TABS_WORKING2 20260122054731
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -301,17 +326,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD PRECON_TABS_WORKING 20260122053036
-// BUILD PRECON_TABS_WORKING 20260122053036
-// BUILD PRECON_TABS_WORKING 20260122053036
-// BUILD PRECON_TABS_WORKING 20260122053036
-// BUILD PRECON_TABS_WORKING 20260122053036
-// BUILD PRECON_TABS_WORKING 20260122053036
-// BUILD PRECON_TABS_WORKING 20260122053036
-// BUILD PRECON_TABS_WORKING 20260122053036
-// BUILD PRECON_TABS_WORKING 20260122053036
-// BUILD PRECON_TABS_WORKING 20260122053036
-// BUILD PRECON_TABS_WORKING 20260122053036
+// BUILD PRECON_TABS_WORKING2 20260122054731
+// BUILD PRECON_TABS_WORKING2 20260122054731
+// BUILD PRECON_TABS_WORKING2 20260122054731
+// BUILD PRECON_TABS_WORKING2 20260122054731
+// BUILD PRECON_TABS_WORKING2 20260122054731
+// BUILD PRECON_TABS_WORKING2 20260122054731
+// BUILD PRECON_TABS_WORKING2 20260122054731
+// BUILD PRECON_TABS_WORKING2 20260122054731
+// BUILD PRECON_TABS_WORKING2 20260122054731
+// BUILD PRECON_TABS_WORKING2 20260122054731
+// BUILD PRECON_TABS_WORKING2 20260122054731
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -3953,7 +3978,7 @@ function renderLeadDetail(app, params){
   
       </div>
 
-      <div class="card" style="margin-top:12px" id="preconCard" style="display:none;margin-top:12px">
+      <div class="card" id="preconCard" style="display:none;margin-top:12px">
         <div class="row space">
           <h3>Preconstruction checklist</h3>
           <span class="badge" id="preconProgressBadge">0/0</span>
@@ -3975,6 +4000,9 @@ function renderLeadDetail(app, params){
     navTo("pipeline");
   };
   $("#convertLead").onclick = ()=> convertLeadToProject(l.id);
+  try{ bindLeadPrecon(l); }catch(e){ console.warn(e); }
+  try{ setLeadTab2(window.__mcbLeadTab || 'overview'); }catch(e){}
+
 }
 
 function openLeadForm(seed={}){
