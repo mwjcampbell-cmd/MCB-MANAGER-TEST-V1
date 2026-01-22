@@ -42,7 +42,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD CCCPLAN_FIX2 20260121233734
+// BUILD HAZARDS_FIX 20260122014736
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -100,7 +100,42 @@ function showUpdateBanner(onReload){
 })();
 // ===== /AUTO UPDATE =====
 
-// BUILD CCCPLAN_FIX2 20260121233734
+
+
+async function forceRefreshApp(){
+  try {
+    if('serviceWorker' in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+  } catch(e){ console.warn('SW unregister failed', e); }
+
+  try {
+    if(window.caches && caches.keys){
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  } catch(e){ console.warn('Cache clear failed', e); }
+
+  try {
+    const url = new URL(window.location.href);
+    url.searchParams.set('v', String(Date.now()));
+    window.location.replace(url.toString());
+  } catch(e) {
+    window.location.reload();
+  }
+}
+
+async function checkForUpdate(){
+  try {
+    if('serviceWorker' in navigator){
+      const reg = await navigator.serviceWorker.getRegistration();
+      if(reg) await reg.update();
+    }
+  } catch(e){ console.warn('SW update failed', e); }
+}
+
+// BUILD HAZARDS_FIX 20260122014736
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -126,17 +161,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD CCCPLAN_FIX2 20260121233734
-// BUILD CCCPLAN_FIX2 20260121233734
-// BUILD CCCPLAN_FIX2 20260121233734
-// BUILD CCCPLAN_FIX2 20260121233734
-// BUILD CCCPLAN_FIX2 20260121233734
-// BUILD CCCPLAN_FIX2 20260121233734
-// BUILD CCCPLAN_FIX2 20260121233734
-// BUILD CCCPLAN_FIX2 20260121233734
-// BUILD CCCPLAN_FIX2 20260121233734
-// BUILD CCCPLAN_FIX2 20260121233734
-// BUILD CCCPLAN_FIX2 20260121233734
+// BUILD HAZARDS_FIX 20260122014736
+// BUILD HAZARDS_FIX 20260122014736
+// BUILD HAZARDS_FIX 20260122014736
+// BUILD HAZARDS_FIX 20260122014736
+// BUILD HAZARDS_FIX 20260122014736
+// BUILD HAZARDS_FIX 20260122014736
+// BUILD HAZARDS_FIX 20260122014736
+// BUILD HAZARDS_FIX 20260122014736
+// BUILD HAZARDS_FIX 20260122014736
+// BUILD HAZARDS_FIX 20260122014736
+// BUILD HAZARDS_FIX 20260122014736
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -635,8 +670,8 @@ function renderHSInductions(pid){
             <div class="title">${escapeHtml(x.name||"")}</div>
             <div class="muted">${escapeHtml(x.company||"")} • ${formatDateNZ(x.date)}</div>
           </div>
-          <button class="btn" data-hsedit="induction" data-id="${x.id}">Edit</button>
-          <button class="btn danger" data-hsdel="induction" data-id="${x.id}">Delete</button>
+          <button class="btn" data-hsedit="induction" data-id="${h.id}">Edit</button>
+          <button class="btn danger" data-hsdel="induction" data-id="${h.id}">Delete</button>
         </div>
       `).join("") || `<div class="muted" style="padding:12px 0;">No inductions yet.</div>`}
     </div>
@@ -659,7 +694,7 @@ function renderHSHazards(pid){
         const overdueCls = overdue ? "dangerText" : "";
         const meta = `${escapeHtml(h.status||"Open")} • Review ${formatDateNZ(h.reviewDate)}${score?` • ${score}`:""}`;
         return `
-          <div class="fwListItem" data-hsopen="hazard" data-id="${x.id}"><div class="fwMain">
+          <div class="fwListItem" data-hsopen="hazard" data-id="${h.id}"><div class="fwMain">
               <div class="fwTitle">${escapeHtml(h.hazard||"")}</div>
               <div class="muted ${overdueCls}">${meta}</div>
             </div>
@@ -687,8 +722,8 @@ function renderHSToolbox(pid){
             <div class="title">${formatDateNZ(x.date)} • ${escapeHtml(x.conductedBy||"")}</div>
             <div class="muted">${escapeHtml((x.topics||"").slice(0,80))}${(x.topics||"").length>80?"…":""}</div>
           </div>
-          <button class="btn" data-hsedit="toolbox" data-id="${x.id}">Edit</button>
-          <button class="btn danger" data-hsdel="toolbox" data-id="${x.id}">Delete</button>
+          <button class="btn" data-hsedit="toolbox" data-id="${h.id}">Edit</button>
+          <button class="btn danger" data-hsdel="toolbox" data-id="${h.id}">Delete</button>
         </div>
       `).join("") || `<div class="muted" style="padding:12px 0;">No toolbox meetings yet.</div>`}
     </div>
@@ -709,8 +744,8 @@ function renderHSIncidents(pid){
             <div class="title">${formatDateNZ(x.date)} • ${escapeHtml(x.type||"Incident")}</div>
             <div class="muted">${escapeHtml((x.description||"").slice(0,80))}${(x.description||"").length>80?"…":""}</div>
           </div>
-          <button class="btn" data-hsedit="incident" data-id="${x.id}">Edit</button>
-          <button class="btn danger" data-hsdel="incident" data-id="${x.id}">Delete</button>
+          <button class="btn" data-hsedit="incident" data-id="${h.id}">Edit</button>
+          <button class="btn danger" data-hsdel="incident" data-id="${h.id}">Delete</button>
         </div>
       `).join("") || `<div class="muted" style="padding:12px 0;">No incidents yet.</div>`}
     </div>
@@ -3264,6 +3299,20 @@ const total = Object.values(lines).reduce((s,v)=> s + (v.amount||0), 0);
 function renderSettings(app){
   setHeader("Settings");
   app.innerHTML = `
+      <div class="card" style="margin-top:12px">
+        <div class="row space">
+          <h3>App refresh</h3>
+          <span class="sub">If updates don’t come through, use this to force the newest GitHub build.</span>
+        </div>
+        <div class="row" style="gap:10px; flex-wrap:wrap">
+          <button class="btn" id="btnCheckUpdate" type="button">Check for update</button>
+          <button class="btn danger" id="btnForceRefresh" type="button">Force refresh (update)</button>
+        </div>
+        <div class="smallmuted" style="margin-top:8px">
+          Force refresh clears the PWA cache & service worker but keeps your local data (IndexedDB).
+        </div>
+      </div>
+
     <div class="grid two">
       <div class="card">
         <div class="h">Google Sync</div>
@@ -3329,6 +3378,12 @@ function renderSettings(app){
     }
   };
   setTimeout(()=>{ try{ renderDeletedProjectsUI(); }catch(e){} }, 0);
+
+  // Settings: update helpers
+  const _bfu = document.getElementById("btnForceRefresh");
+  if(_bfu) _bfu.onclick = ()=>forceRefreshApp();
+  const _bcu = document.getElementById("btnCheckUpdate");
+  if(_bcu) _bcu.onclick = async ()=>{ await checkForUpdate(); alert("Checked for update. If one is available, reload the app."); };
 }
 
 
