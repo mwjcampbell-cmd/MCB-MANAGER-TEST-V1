@@ -303,7 +303,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
+// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -396,7 +396,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
+// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -427,17 +427,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
-// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
-// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
-// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
-// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
-// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
-// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
-// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
-// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
-// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
-// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
+// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
+// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
+// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
+// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
+// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
+// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
+// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
+// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
+// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
+// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
+// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -1442,7 +1442,7 @@ function renderHSHazards(pid){
         const overdueCls = overdue ? "dangerText" : "";
         const meta = `${escapeHtml(h.status||"Open")} • Review ${formatDateNZ(h.reviewDate)}${score?` • ${score}`:""}`;
         return `
-          <div class="fwListItem" data-hsopen="hazard" data-id="${h.id}"><div class="fwMain">
+          <div class="fwListItem"${(state.uiSelections&&state.uiSelections.tasks&&String(state.uiSelections.tasks.selectedId)===String(t.id))?" active":""} data-hsopen="hazard" data-id="${h.id}"><div class="fwMain">
               <div class="fwTitle">${escapeHtml(h.hazard||"")}</div>
               <div class="muted ${overdueCls}">${meta}</div>
             </div>
@@ -3381,7 +3381,7 @@ function diaryRowWithProject(d){
     photosTaken ? "Photos taken" : ""
   ].filter(Boolean).join(" • ");
   return `
-    <div class="fwListItem" data-action="open" data-id="${d.id}">
+    <div class="fwListItem${(state.uiSelections&&state.uiSelections.diary&&String(state.uiSelections.diary.selectedId)===String(d.id))?" active":""}" data-action="open" data-id="${d.id}">
       <div class="fwMain">
         <div class="fwTitleRow">
           <div class="fwTitle">${escapeHtml(date || "Diary entry")}</div>
@@ -6318,3 +6318,29 @@ function bindDiaryDetailPane(d){
     requestRender();
   };
 }
+
+// MCB_TASK_DIARY_SELECT_DELEGATE_V9 20260122215412
+document.addEventListener("click",(ev)=>{
+  try{
+    const taskRow = ev.target && ev.target.closest ? ev.target.closest("#taskList [data-action='open']") : null;
+    if(taskRow){
+      const id = String(taskRow.dataset.id || "");
+      state.uiSelections = state.uiSelections || {};
+      state.uiSelections.tasks = state.uiSelections.tasks || {};
+      state.uiSelections.tasks.selectedId = id;
+      saveState(state);
+      requestRender();
+      return;
+    }
+    const diaryRow = ev.target && ev.target.closest ? ev.target.closest("#diaryList [data-action='open']") : null;
+    if(diaryRow){
+      const id = String(diaryRow.dataset.id || "");
+      state.uiSelections = state.uiSelections || {};
+      state.uiSelections.diary = state.uiSelections.diary || {};
+      state.uiSelections.diary.selectedId = id;
+      saveState(state);
+      requestRender();
+      return;
+    }
+  }catch(e){ console.warn("select delegate failed", e); }
+});
