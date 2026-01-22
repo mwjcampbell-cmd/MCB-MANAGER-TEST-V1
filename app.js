@@ -303,7 +303,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
+// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -396,7 +396,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
+// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -427,17 +427,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
-// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
-// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
-// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
-// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
-// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
-// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
-// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
-// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
-// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
-// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
+// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
+// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
+// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
+// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
+// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
+// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
+// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
+// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
+// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
+// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
+// BUILD V8_TASK_DIARY_SELECTFIX 20260122214605
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -2992,33 +2992,22 @@ function projectReports(p){
 }
 
 // ----------------- Tasks (global) -----------------
+
 function renderTasks(app, params){
   setHeader("Tasks");
+  params = params || {};
+  state.uiSelections = state.uiSelections || {};
+  state.uiSelections.tasks = state.uiSelections.tasks || {};
   const projectId = params.projectId || "";
-  const selectedId = params.id || (state.uiSelections?.tasks?.selectedId || "");
+  const selectedId = String(params.id || state.uiSelections.tasks.selectedId || "");
   const projects = aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   const tasks = aliveArr(state.tasks)
     .filter(t=> !projectId || t.projectId===projectId)
     .slice()
     .sort((a,b)=>(b.updatedAt||"").localeCompare(a.updatedAt||""));
-  
-  if(selectedId){
-    const tsel = aliveArr(state.tasks).find(t=>String(t.id)===String(selectedId));
-    if(tsel){
-      state.uiSelections.tasks = state.uiSelections.tasks || {};
-      state.uiSelections.tasks.selectedId = String(selectedId);
-      saveState(state);
-      app.innerHTML = renderTaskDetail(tsel);
-      bindTaskDetail(tsel, projectId);
-      return;
-    } else {
-      // stale selection
-      state.uiSelections.tasks = state.uiSelections.tasks || {};
-      delete state.uiSelections.tasks.selectedId;
-      saveState(state);
-    }
-  }
-app.innerHTML = `
+  const selectedTask = selectedId ? aliveArr(state.tasks).find(t=>String(t.id)===selectedId) : null;
+
+  app.innerHTML = `
     <div class="card">
       <div class="row space">
         <h2>Tasks</h2>
@@ -3035,20 +3024,50 @@ app.innerHTML = `
         <div></div>
       </div>
       <hr/>
-      <div class="list" id="taskList">${tasks.length ? tasks.map(taskRowWithProject).join("") : `<div class="sub">No tasks yet.</div>`}</div>
+      <div class="list" id="taskList">
+        ${tasks.length ? tasks.map(taskRowWithProject).join("") : `<div class="sub">No tasks yet.</div>`}
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px" id="taskDetailCard">
+      <div class="h3">Details</div>
+      <div id="taskDetailBody" style="margin-top:10px">
+        ${selectedTask ? renderTaskDetailPane(selectedTask) : `<div class="sub">Tap a task above to see details here.</div>`}
+      </div>
     </div>
   `;
+
   $("#newTask").onclick = ()=> openTaskForm(projectId ? { projectId } : {});
   $("#taskProjectFilter").onchange = (e)=>{
     const v = e.target.value;
+    // keep selection if still matches filter, else clear
+    if(v && selectedTask && String(selectedTask.projectId)!==String(v)){
+      delete state.uiSelections.tasks.selectedId;
+      saveState(state);
+    }
     navTo("tasks", v ? {projectId:v} : {});
   };
 
   $$("#taskList [data-action='open']").forEach(row=>row.onclick = ()=>{
-    const id = row.dataset.id;
-    navTo("tasks", Object.assign({}, projectId ? {projectId} : {}, { id }));
+    const id = String(row.dataset.id || "");
+    state.uiSelections.tasks.selectedId = id;
+    saveState(state);
+    // update detail pane without navigating away
+    const t = aliveArr(state.tasks).find(x=>String(x.id)===id);
+    const body = document.getElementById("taskDetailBody");
+    if(body){
+      body.innerHTML = t ? renderTaskDetailPane(t) : `<div class="sub">Task not found.</div>`;
+      if(t) bindTaskDetailPane(t, projectId);
+    } else {
+      requestRender();
+    }
   });
+
+  if(selectedTask){
+    bindTaskDetailPane(selectedTask, projectId);
+  }
 }
+
 function taskRowWithProject(t){
   const p = projectById(t.projectId);
   const status = t.status || "Open";
@@ -3277,32 +3296,22 @@ function openDiaryView(d){
   $("#closeM").onclick = closeModal;
   $("#editV").onclick = ()=> openDiaryForm(d);
 }
+
 function renderDiary(app, params){
   setHeader("Diary");
+  params = params || {};
+  state.uiSelections = state.uiSelections || {};
+  state.uiSelections.diary = state.uiSelections.diary || {};
   const projectId = params.projectId || "";
-  const selectedId = params.id || (state.uiSelections?.tasks?.selectedId || "");
+  const selectedId = String(params.id || state.uiSelections.diary.selectedId || "");
   const projects = aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   const entries = aliveArr(state.diary)
     .filter(d=> !projectId || d.projectId===projectId)
     .slice()
     .sort((a,b)=>(b.date||"").localeCompare(a.date||""));
-  
-  if(selectedId){
-    const dsel = aliveArr(state.diary).find(d=>String(d.id)===String(selectedId));
-    if(dsel){
-      state.uiSelections.diary = state.uiSelections.diary || {};
-      state.uiSelections.diary.selectedId = String(selectedId);
-      saveState(state);
-      app.innerHTML = renderDiaryDetail(dsel);
-      bindDiaryDetail(dsel, projectId);
-      return;
-    } else {
-      state.uiSelections.diary = state.uiSelections.diary || {};
-      delete state.uiSelections.diary.selectedId;
-      saveState(state);
-    }
-  }
-app.innerHTML = `
+  const selectedEntry = selectedId ? aliveArr(state.diary).find(d=>String(d.id)===selectedId) : null;
+
+  app.innerHTML = `
     <div class="card">
       <div class="row space">
         <h2>Diary</h2>
@@ -3319,21 +3328,48 @@ app.innerHTML = `
         <div></div>
       </div>
       <hr/>
-      <div class="list" id="diaryList">${entries.length ? entries.map(diaryRowWithProject).join("") : `<div class="sub">No diary entries yet.</div>`}</div>
+      <div class="list" id="diaryList">
+        ${entries.length ? entries.map(diaryRowWithProject).join("") : `<div class="sub">No diary entries yet.</div>`}
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px" id="diaryDetailCard">
+      <div class="h3">Details</div>
+      <div id="diaryDetailBody" style="margin-top:10px">
+        ${selectedEntry ? renderDiaryDetailPane(selectedEntry) : `<div class="sub">Tap a diary entry above to see details here.</div>`}
+      </div>
     </div>
   `;
+
   $("#newDiary").onclick = ()=> openDiaryForm(projectId ? { projectId } : {});
   $("#diaryProjectFilter").onchange = (e)=>{
     const v = e.target.value;
+    if(v && selectedEntry && String(selectedEntry.projectId)!==String(v)){
+      delete state.uiSelections.diary.selectedId;
+      saveState(state);
+    }
     navTo("diary", v ? {projectId:v} : {});
   };
 
   $$("#diaryList [data-action='open']").forEach(row=>row.onclick = ()=>{
-    const id = row.dataset.id;
-    navTo("diary", Object.assign({}, projectId ? {projectId} : {}, { id }));
+    const id = String(row.dataset.id || "");
+    state.uiSelections.diary.selectedId = id;
+    saveState(state);
+    const d = aliveArr(state.diary).find(x=>String(x.id)===id);
+    const body = document.getElementById("diaryDetailBody");
+    if(body){
+      body.innerHTML = d ? renderDiaryDetailPane(d) : `<div class="sub">Entry not found.</div>`;
+      if(d) bindDiaryDetailPane(d);
+    } else {
+      requestRender();
+    }
   });
-  // (Fieldwire UI refactor) Delete is handled by detail view actions.
+
+  if(selectedEntry){
+    bindDiaryDetailPane(selectedEntry);
+  }
 }
+
 function diaryRowWithProject(d){
   const p = projectById(d.projectId);
   const date = d.date ? dateFmt(d.date) : "";
@@ -6198,4 +6234,87 @@ function getLastUpdateStamp(){
     const iso = localStorage.getItem("mcb_last_update_at") || "";
     return fmtDDMMYYYY(iso) + (iso?(" " + new Date(iso).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})):"");
   }catch(e){ return "—"; }
+}
+
+function renderTaskDetailPane(t){
+  const p = projectById(t.projectId);
+  const status = t.status || "Open";
+  const due = t.dueDate ? dateFmt(t.dueDate) : "";
+  const updated = t.updatedAt ? dateFmt(String(t.updatedAt).slice(0,10)) : "";
+  const photosTaken = !!(t.photosTaken || (t.photosJson && String(t.photosJson).trim()) || (t.photos && t.photos.length));
+  return `
+    <div class="row space" style="align-items:flex-start; gap:12px; flex-wrap:wrap">
+      <div>
+        <div class="fwH1" style="margin:0">${escapeHtml(t.title || "(Untitled task)")}</div>
+        <div class="sub">${p ? escapeHtml(p.name||p.address||"") : "No project"}</div>
+      </div>
+      <div class="row" style="gap:10px">
+        <button class="btn" id="taskEditPane" type="button">Edit</button>
+        <button class="btn danger" id="taskDeletePane" type="button">Delete</button>
+      </div>
+    </div>
+    <div class="fwBadgeRow" style="margin-top:10px">
+      <span class="fwBadge ${statusBadgeClass(status)}">${escapeHtml(status)}</span>
+      ${due ? `<span class="fwBadge muted">Due ${escapeHtml(due)}</span>` : ``}
+      ${photosTaken ? `<span class="fwBadge">${escapeHtml("Photos taken")}</span>` : ``}
+      ${updated ? `<span class="fwBadge muted">Updated ${escapeHtml(updated)}</span>` : ``}
+    </div>
+    ${t.description ? `<div class="card" style="margin-top:12px"><div class="h3">Details</div><div class="sub" style="margin-top:6px; white-space:pre-wrap">${escapeHtml(t.description)}</div></div>` : ``}
+  `;
+}
+function bindTaskDetailPane(t, projectId){
+  const e = document.getElementById("taskEditPane");
+  if(e) e.onclick = ()=> openTaskForm(t);
+  const d = document.getElementById("taskDeletePane");
+  if(d) d.onclick = ()=>{
+    if(!confirm("Delete this task?")) return;
+    deleteTask(t.id);
+    // clear selection if it was this task
+    state.uiSelections = state.uiSelections || {};
+    state.uiSelections.tasks = state.uiSelections.tasks || {};
+    if(String(state.uiSelections.tasks.selectedId)===String(t.id)) delete state.uiSelections.tasks.selectedId;
+    saveState(state);
+    requestRender();
+  };
+}
+
+function renderDiaryDetailPane(d){
+  const p = projectById(d.projectId);
+  const date = d.date ? dateFmt(d.date) : "";
+  const hours = (d.hours || d.totalHours || d.hoursWorked || "");
+  const photosTaken = !!(d.photosTaken || (d.photosJson && String(d.photosJson).trim()) || (d.photos && d.photos.length));
+  return `
+    <div class="row space" style="align-items:flex-start; gap:12px; flex-wrap:wrap">
+      <div>
+        <div class="fwH1" style="margin:0">${escapeHtml(date || "(No date)")}</div>
+        <div class="sub">${p ? escapeHtml(p.name||p.address||"") : "No project"}${hours!=="" ? ` • <b>${escapeHtml(String(hours))}h</b>` : ""}</div>
+      </div>
+      <div class="row" style="gap:10px">
+        <button class="btn" id="diaryEditPane" type="button">Edit</button>
+        <button class="btn danger" id="diaryDeletePane" type="button">Delete</button>
+      </div>
+    </div>
+    <div class="fwBadgeRow" style="margin-top:10px">
+      ${photosTaken ? `<span class="fwBadge">${escapeHtml("Photos taken")}</span>` : ``}
+      ${(d.variation || d.variationText) ? `<span class="fwBadge warn">Variation</span>` : ``}
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div class="h3">Notes</div>
+      <div class="sub" style="margin-top:6px; white-space:pre-wrap">${escapeHtml(d.notes || d.note || "") || "<span class='sub'>—</span>"}</div>
+    </div>
+  `;
+}
+function bindDiaryDetailPane(d){
+  const e = document.getElementById("diaryEditPane");
+  if(e) e.onclick = ()=> openDiaryForm(d);
+  const del = document.getElementById("diaryDeletePane");
+  if(del) del.onclick = ()=>{
+    if(!confirm("Delete this diary entry?")) return;
+    deleteDiary(d.id);
+    state.uiSelections = state.uiSelections || {};
+    state.uiSelections.diary = state.uiSelections.diary || {};
+    if(String(state.uiSelections.diary.selectedId)===String(d.id)) delete state.uiSelections.diary.selectedId;
+    saveState(state);
+    requestRender();
+  };
 }
