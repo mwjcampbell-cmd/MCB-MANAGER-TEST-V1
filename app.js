@@ -2,20 +2,55 @@
 
 function defaultPreconChecklist(){
   return [
-    { key:"scope_confirmed", label:"Scope confirmed", done:false },
-    { key:"site_measure_confirmed", label:"Site measure confirmed", done:false },
-    { key:"plans_received", label:"Plans / drawings received", done:false },
-    { key:"engineering_required", label:"Engineering required?", done:false, kind:"choice", value:"Unknown", choices:["Unknown","Yes","No"] },
+    { key:"client_details_confirmed", label:"Client details confirmed (names/phone/email)", done:false },
+    { key:"site_address_confirmed", label:"Site address confirmed (legal + physical)", done:false },
+    { key:"scope_confirmed_written", label:"Scope confirmed (written)", done:false },
+    { key:"exclusions_confirmed", label:"Exclusions / assumptions confirmed", done:false },
+    { key:"existing_conditions_documented", label:"Existing conditions documented (photos taken)", done:false },
+    { key:"access_restrictions", label:"Access / working hours restrictions confirmed", done:false },
+    { key:"neighbours_partywall", label:"Neighbours / party wall considerations noted (if applicable)", done:false },
+    { key:"plans_received_current", label:"Current plans/drawings received (latest revision)", done:false },
+    { key:"specs_received", label:"Specifications received (or created)", done:false },
+    { key:"structural_design_complete", label:"Structural design complete (if applicable)", done:false },
+    { key:"producer_statements_list", label:"Producer statements list created (PS1/PS3/PS4 as applicable)", done:false },
+    { key:"variations_process_agreed", label:"Variations / changes process agreed", done:false },
     { key:"consent_required", label:"Building consent required?", done:false, kind:"choice", value:"Unknown", choices:["Unknown","Yes","No"] },
-    { key:"designer_engaged", label:"Designer/architect engaged", done:false },
-    { key:"utility_locates", label:"Services / utility locates done", done:false },
-    { key:"hazards_known", label:"Known site hazards recorded", done:false },
-    { key:"long_lead_items", label:"Long-lead items identified", done:false },
-    { key:"supplier_accounts", label:"Supplier accounts / lead times checked", done:false },
-    { key:"client_decisions", label:"Client selections / decisions list started", done:false },
-    { key:"prestart_meeting", label:"Pre-start meeting booked", done:false },
-    { key:"programme_draft", label:"Programme draft created", done:false },
-    { key:"ccc_plan_selected", label:"CCC inspection plan selected", done:false }
+    { key:"consent_lodged", label:"If required: consent lodged", done:false },
+    { key:"consent_approved", label:"If required: consent approved / conditions reviewed", done:false },
+    { key:"approved_docs_recorded", label:"Approved docs recorded (stamped set / conditions)", done:false },
+    { key:"inspection_plan_selected", label:"Inspection plan selected (CCC tracker set)", done:false },
+    { key:"critical_hold_points", label:"Critical tolerances / hold points noted", done:false },
+    { key:"site_measure_verified", label:"Site measure verified", done:false },
+    { key:"boundary_levels_confirmed", label:"Boundary/levels confirmed (as required)", done:false },
+    { key:"services_located", label:"Underground services located (water/power/gas/stormwater)", done:false },
+    { key:"temp_power_plan", label:"Temporary power plan confirmed", done:false },
+    { key:"welfare_toilet", label:"Toilet / welfare arranged (if required)", done:false },
+    { key:"waste_plan", label:"Rubbish / waste plan arranged (skip/bin)", done:false },
+    { key:"storage_security", label:"Storage / security plan for materials & tools", done:false },
+    { key:"hs_hazards_created", label:"Site-specific hazards identified (initial hazards list created)", done:false },
+    { key:"emergency_plan", label:"Emergency plan confirmed (address / nearest hospital)", done:false },
+    { key:"first_aid_ready", label:"First aid kit available / first aiders noted", done:false },
+    { key:"ppe_requirements", label:"PPE requirements set", done:false },
+    { key:"toolbox_schedule", label:"Toolbox meeting schedule set", done:false },
+    { key:"induction_requirements", label:"Induction requirements set for subbies/visitors", done:false },
+    { key:"public_protection", label:"Public protection plan (fencing/signage) if required", done:false },
+    { key:"long_leads_identified", label:"Long-lead items identified", done:false },
+    { key:"long_leads_ordered", label:"Long-lead items ordered / lead times confirmed", done:false },
+    { key:"suppliers_confirmed", label:"Key suppliers confirmed", done:false },
+    { key:"selections_confirmed", label:"Product selections confirmed (fixtures/finishes etc.)", done:false },
+    { key:"delivery_access_confirmed", label:"Delivery location/access confirmed", done:false },
+    { key:"required_trades_confirmed", label:"Required trades list confirmed", done:false },
+    { key:"subbies_availability", label:"Subbies availability confirmed (rough dates)", done:false },
+    { key:"lbp_checked", label:"LBP requirements checked (restricted work if applicable)", done:false },
+    { key:"subbie_docs_requested", label:"Insurance / documentation requested from subbies (if needed)", done:false },
+    { key:"programme_draft_created", label:"Draft programme created (key milestones)", done:false },
+    { key:"client_comms_cadence", label:"Client communication cadence agreed (weekly update etc.)", done:false },
+    { key:"site_meeting_schedule", label:"Site meeting schedule set", done:false },
+    { key:"client_decision_deadlines", label:"Client decision deadlines created (selections by dates)", done:false },
+    { key:"contract_status", label:"Contract status confirmed", done:false },
+    { key:"payment_schedule", label:"Deposit/payment schedule confirmed", done:false },
+    { key:"budget_allowances", label:"Budget allowances confirmed", done:false },
+    { key:"time_tracking_method", label:"Time tracking method confirmed (Hnry export)", done:false }
   ];
 }
 
@@ -119,7 +154,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD PHASEA1_PRECON 20260122042833
+// BUILD PHASEA1_PRECON_NZ 20260122045046
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -212,7 +247,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD PHASEA1_PRECON 20260122042833
+// BUILD PHASEA1_PRECON_NZ 20260122045046
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -238,17 +273,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD PHASEA1_PRECON 20260122042833
-// BUILD PHASEA1_PRECON 20260122042833
-// BUILD PHASEA1_PRECON 20260122042833
-// BUILD PHASEA1_PRECON 20260122042833
-// BUILD PHASEA1_PRECON 20260122042833
-// BUILD PHASEA1_PRECON 20260122042833
-// BUILD PHASEA1_PRECON 20260122042833
-// BUILD PHASEA1_PRECON 20260122042833
-// BUILD PHASEA1_PRECON 20260122042833
-// BUILD PHASEA1_PRECON 20260122042833
-// BUILD PHASEA1_PRECON 20260122042833
+// BUILD PHASEA1_PRECON_NZ 20260122045046
+// BUILD PHASEA1_PRECON_NZ 20260122045046
+// BUILD PHASEA1_PRECON_NZ 20260122045046
+// BUILD PHASEA1_PRECON_NZ 20260122045046
+// BUILD PHASEA1_PRECON_NZ 20260122045046
+// BUILD PHASEA1_PRECON_NZ 20260122045046
+// BUILD PHASEA1_PRECON_NZ 20260122045046
+// BUILD PHASEA1_PRECON_NZ 20260122045046
+// BUILD PHASEA1_PRECON_NZ 20260122045046
+// BUILD PHASEA1_PRECON_NZ 20260122045046
+// BUILD PHASEA1_PRECON_NZ 20260122045046
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -3887,7 +3922,7 @@ function renderLeadDetail(app, params){
           <h3>Preconstruction checklist</h3>
           <span class="badge" id="preconProgressBadge">0/0</span>
         </div>
-        <div class="sub" style="margin-top:6px">Track readiness before converting to a live job.</div>
+        <div class="sub" style="margin-top:6px">NZ residential preconstruction checklist (editable per lead).</div>
         <div style="margin-top:12px" id="preconList"></div>
         <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:12px">
           <button class="btn" type="button" id="preconMarkAll">Mark all complete</button>
