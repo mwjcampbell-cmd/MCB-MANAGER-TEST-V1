@@ -1,4 +1,4 @@
-const CACHE="mcb-cache-split-fleet-equip-20260122175416";
+const CACHE="mcb-cache-fleetfix-20260122180921";
 const ASSETS = [
   "./",
   "./index.html",
