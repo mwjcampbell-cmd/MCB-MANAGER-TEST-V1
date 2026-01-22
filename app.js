@@ -293,7 +293,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD V5_RERENDERFIX 20260122183947
+// BUILD V6_EDIT_DELETE_FIX 20260122212135
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -386,7 +386,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD V5_RERENDERFIX 20260122183947
+// BUILD V6_EDIT_DELETE_FIX 20260122212135
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -412,17 +412,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD V5_RERENDERFIX 20260122183947
-// BUILD V5_RERENDERFIX 20260122183947
-// BUILD V5_RERENDERFIX 20260122183947
-// BUILD V5_RERENDERFIX 20260122183947
-// BUILD V5_RERENDERFIX 20260122183947
-// BUILD V5_RERENDERFIX 20260122183947
-// BUILD V5_RERENDERFIX 20260122183947
-// BUILD V5_RERENDERFIX 20260122183947
-// BUILD V5_RERENDERFIX 20260122183947
-// BUILD V5_RERENDERFIX 20260122183947
-// BUILD V5_RERENDERFIX 20260122183947
+// BUILD V6_EDIT_DELETE_FIX 20260122212135
+// BUILD V6_EDIT_DELETE_FIX 20260122212135
+// BUILD V6_EDIT_DELETE_FIX 20260122212135
+// BUILD V6_EDIT_DELETE_FIX 20260122212135
+// BUILD V6_EDIT_DELETE_FIX 20260122212135
+// BUILD V6_EDIT_DELETE_FIX 20260122212135
+// BUILD V6_EDIT_DELETE_FIX 20260122212135
+// BUILD V6_EDIT_DELETE_FIX 20260122212135
+// BUILD V6_EDIT_DELETE_FIX 20260122212135
+// BUILD V6_EDIT_DELETE_FIX 20260122212135
+// BUILD V6_EDIT_DELETE_FIX 20260122212135
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -5532,7 +5532,7 @@ function renderFleet(){
             </div>
             <div class="row" style="gap:8px; align-items:center">
               <button class="btn ghost sm" type="button" data-fleet-edit="${escapeAttr(v.id)}">Edit</button>
-              <button class="btn ghost sm" type="button" data-fleet-del="${escapeAttr(v.id)}">Delete</button>
+              
             </div>
           </div>
         </div>`;
@@ -5609,7 +5609,7 @@ function renderEquipment(){
             </div>
             <div class="row" style="gap:8px; align-items:center">
               <button class="btn ghost sm" type="button" data-equip-edit="${escapeAttr(e.id)}">Edit</button>
-              <button class="btn ghost sm" type="button" data-equip-del="${escapeAttr(e.id)}">Delete</button>
+              
             </div>
           </div>
         </div>`;
@@ -5667,6 +5667,7 @@ function fleetFormModal(v){
     <div style="margin-top:14px"><label class="label">Notes</label><textarea class="input" id="fleetNotes" rows="4">${escapeHtml(veh.notes||"")}</textarea></div>
     <div class="row" style="justify-content:flex-end; gap:10px; margin-top:16px">
       <button class="btn ghost" id="cancelModalBtn" type="button">Cancel</button>
+      <button class="btn ghost" id="deleteFleetBtn" type="button" style="${isNew?'display:none':''}">Delete</button>
       <button class="btn" id="saveFleetBtn" type="button">${isNew?"Create":"Save"}</button>
     </div>
   </div></div>`;
@@ -5716,6 +5717,7 @@ function equipmentFormModal(e){
     <div style="margin-top:14px"><label class="label">Notes</label><textarea class="input" id="equipNotes" rows="4">${escapeHtml(eq.notes||"")}</textarea></div>
     <div class="row" style="justify-content:flex-end; gap:10px; margin-top:16px">
       <button class="btn ghost" id="cancelModalBtn" type="button">Cancel</button>
+      <button class="btn ghost" id="deleteEquipBtn" type="button" style="${isNew?'display:none':''}">Delete</button>
       <button class="btn" id="saveEquipBtn" type="button">${isNew?"Create":"Save"}</button>
     </div>
   </div></div>`;
@@ -5763,6 +5765,16 @@ function bindFleetModal(id){
       try{ const r=parseRoute(); if(r.path==="fleet"){ requestRender(); } }catch(e){}
     };
   }
+  const del = document.getElementById("deleteFleetBtn");
+  if(del && existing){
+    del.onclick = ()=>{
+      if(!confirm("Delete this vehicle?")) return;
+      softDeleteFleet(existing.id);
+      closeModal();
+      requestRender();
+    };
+  }
+
 }
 function bindEquipmentEvents(){
   state.ui = state.ui || {};
@@ -5825,3 +5837,21 @@ function postRenderBindings(){
     if(r && r.path==="equipment" && typeof bindEquipmentEvents==="function") bindEquipmentEvents();
   }catch(e){}
 }
+
+// MCB_EDIT_ONLY_DELEGATE_V6
+document.addEventListener("click",(ev)=>{
+  const ef = ev.target && ev.target.closest ? ev.target.closest("[data-fleet-edit]") : null;
+  if(ef){
+    const id = ef.getAttribute("data-fleet-edit");
+    openModal(fleetFormModal(fleetById(id)));
+    bindFleetModal(id);
+    return;
+  }
+  const ee = ev.target && ev.target.closest ? ev.target.closest("[data-equip-edit]") : null;
+  if(ee){
+    const id = ee.getAttribute("data-equip-edit");
+    openModal(equipmentFormModal(equipmentById(id)));
+    bindEquipModal(id);
+    return;
+  }
+});
