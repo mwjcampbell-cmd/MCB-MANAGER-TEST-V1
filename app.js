@@ -1,5 +1,23 @@
 
 
+function isProgrammeTaskRemoved(t){
+  return !!(t && (t.removed === true || t.disabled === true || t.deletedAt || t.removedAt));
+}
+function markProgrammeTaskRemoved(task, removed){
+  const now = new Date().toISOString();
+  if(removed){
+    task.removed = true;
+    task.removedAt = now;
+  }else{
+    delete task.removed;
+    delete task.removedAt;
+    task.removed = false;
+  }
+  return task;
+}
+
+
+
 const PRECON_REQUIRED_KEYS = ["scope_confirmed_written", "plans_received_current", "consent_required", "hs_hazards_created", "long_leads_identified", "programme_draft_created"];
 function leadIsConverted(lead){
   const s = String((lead && (lead.status||lead.stage||""))).toLowerCase();
@@ -264,7 +282,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD 12C1_PROGRAMME_READONLY 20260122071138
+// BUILD PROGRAMME_REMOVABLE_TASKS 20260122074153
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -357,7 +375,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD 12C1_PROGRAMME_READONLY 20260122071138
+// BUILD PROGRAMME_REMOVABLE_TASKS 20260122074153
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -383,17 +401,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD 12C1_PROGRAMME_READONLY 20260122071138
-// BUILD 12C1_PROGRAMME_READONLY 20260122071138
-// BUILD 12C1_PROGRAMME_READONLY 20260122071138
-// BUILD 12C1_PROGRAMME_READONLY 20260122071138
-// BUILD 12C1_PROGRAMME_READONLY 20260122071138
-// BUILD 12C1_PROGRAMME_READONLY 20260122071138
-// BUILD 12C1_PROGRAMME_READONLY 20260122071138
-// BUILD 12C1_PROGRAMME_READONLY 20260122071138
-// BUILD 12C1_PROGRAMME_READONLY 20260122071138
-// BUILD 12C1_PROGRAMME_READONLY 20260122071138
-// BUILD 12C1_PROGRAMME_READONLY 20260122071138
+// BUILD PROGRAMME_REMOVABLE_TASKS 20260122074153
+// BUILD PROGRAMME_REMOVABLE_TASKS 20260122074153
+// BUILD PROGRAMME_REMOVABLE_TASKS 20260122074153
+// BUILD PROGRAMME_REMOVABLE_TASKS 20260122074153
+// BUILD PROGRAMME_REMOVABLE_TASKS 20260122074153
+// BUILD PROGRAMME_REMOVABLE_TASKS 20260122074153
+// BUILD PROGRAMME_REMOVABLE_TASKS 20260122074153
+// BUILD PROGRAMME_REMOVABLE_TASKS 20260122074153
+// BUILD PROGRAMME_REMOVABLE_TASKS 20260122074153
+// BUILD PROGRAMME_REMOVABLE_TASKS 20260122074153
+// BUILD PROGRAMME_REMOVABLE_TASKS 20260122074153
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -635,6 +653,8 @@ function computeSchedule(tasks, startDate){
 }
 
 function computeCriticalPath(tasks){
+  tasks = (tasks||[]).filter(t=>!isProgrammeTaskRemoved(t));
+
   const map = new Map(tasks.map(t=>[t.key, t]));
   const ordered = topoSortTasks(tasks);
   const dist = new Map(); // longest duration to end of task
@@ -4803,3 +4823,55 @@ async function downloadOnlySettings(){
 }
 function toastSuccess(msg){ toast(msg); }
 function toastError(msg){ toast(msg); }
+// Programme remove/restore task (delegated)
+document.addEventListener("click", (ev)=>{
+  const btn = ev.target && (ev.target.closest ? ev.target.closest("[data-prog-remove],[data-prog-restore]") : null);
+  if(!btn) return;
+  ev.preventDefault();
+  const id = btn.getAttribute("data-prog-remove") || btn.getAttribute("data-prog-restore");
+  const projectId = btn.getAttribute("data-prog-project");
+  if(!id || !projectId) return;
+  try{
+    const tasks = getProgrammeTasksForProject(projectId);
+    const task = tasks.find(x=>String(x.id)===String(id));
+    if(!task) return;
+    if(btn.hasAttribute("data-prog-remove")){
+      if(!confirm("Remove this programme task from this job? (You can restore it later in Programme settings.)")) return;
+      markProgrammeTaskRemoved(task, true);
+    }else{
+      markProgrammeTaskRemoved(task, false);
+    }
+    saveProgrammeTasksForProject(projectId, tasks);
+    // Recompute critical path and re-render programme
+    renderProgrammeForProject(projectId);
+  }catch(e){
+    console.warn(e);
+    alert("Could not update programme task.");
+  }
+});
+
+function getProgrammeTasksForProject(...args){ return programmeTasksForProject(...args); }
+
+function renderRemovedProgrammeTasks(projectId){
+  const host = document.getElementById("removedProgrammeList");
+  if(!host) return;
+  try{
+    const tasks = getProgrammeTasksForProject(projectId) || [];
+    const removed = tasks.filter(t=>isProgrammeTaskRemoved(t));
+    if(!removed.length){
+      host.innerHTML = `<div class="smallmuted">None</div>`;
+      return;
+    }
+    host.innerHTML = removed.map(t=>`
+      <div class="listItem" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;margin-bottom:10px">
+        <div>
+          <div style="font-weight:700">${escapeHtml(t.name||t.title||"Task")}</div>
+          <div class="smallmuted">${escapeHtml(t.phase||"")}</div>
+        </div>
+        <button class="btn ghost" type="button" data-prog-restore="${escapeAttr(t.id)}" data-prog-project="${escapeAttr(projectId)}">Restore</button>
+      </div>
+    `).join("");
+  }catch(e){
+    host.innerHTML = `<div class="smallmuted">Unable to load removed tasks</div>`;
+  }
+}
