@@ -154,7 +154,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD PHASEA1_PRECON_NZ 20260122045046
+// BUILD PHASEA11_PRECON_VISIBLE 20260122051042
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -247,7 +247,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD PHASEA1_PRECON_NZ 20260122045046
+// BUILD PHASEA11_PRECON_VISIBLE 20260122051042
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -273,17 +273,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD PHASEA1_PRECON_NZ 20260122045046
-// BUILD PHASEA1_PRECON_NZ 20260122045046
-// BUILD PHASEA1_PRECON_NZ 20260122045046
-// BUILD PHASEA1_PRECON_NZ 20260122045046
-// BUILD PHASEA1_PRECON_NZ 20260122045046
-// BUILD PHASEA1_PRECON_NZ 20260122045046
-// BUILD PHASEA1_PRECON_NZ 20260122045046
-// BUILD PHASEA1_PRECON_NZ 20260122045046
-// BUILD PHASEA1_PRECON_NZ 20260122045046
-// BUILD PHASEA1_PRECON_NZ 20260122045046
-// BUILD PHASEA1_PRECON_NZ 20260122045046
+// BUILD PHASEA11_PRECON_VISIBLE 20260122051042
+// BUILD PHASEA11_PRECON_VISIBLE 20260122051042
+// BUILD PHASEA11_PRECON_VISIBLE 20260122051042
+// BUILD PHASEA11_PRECON_VISIBLE 20260122051042
+// BUILD PHASEA11_PRECON_VISIBLE 20260122051042
+// BUILD PHASEA11_PRECON_VISIBLE 20260122051042
+// BUILD PHASEA11_PRECON_VISIBLE 20260122051042
+// BUILD PHASEA11_PRECON_VISIBLE 20260122051042
+// BUILD PHASEA11_PRECON_VISIBLE 20260122051042
+// BUILD PHASEA11_PRECON_VISIBLE 20260122051042
+// BUILD PHASEA11_PRECON_VISIBLE 20260122051042
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -557,7 +557,7 @@ function upcomingCardHTML(days=7){
     </div>
   `).join("");
   return `
-    <div class="card">
+    <div class="card" id="leadOverview">
       <div class="row space">
         <h2>Upcoming (next ${days} days)</h2>
         <button class="btn small" id="upcomingRefresh" type="button">Refresh</button>
@@ -1456,6 +1456,10 @@ function renderProjects(app){
         </div>
         <div class="sub">Tap a project to manage: diary, tasks, variations, subbies, deliveries, inspections, reports.</div>
         <hr/>
+      <div class="row" style="gap:10px; margin:10px 0 4px 0; flex-wrap:wrap">
+        <button class="btn" id="tabLeadOverview" type="button">Overview</button>
+        <button class="btn" id="tabLeadPrecon" type="button">Precon</button>
+      </div>
         <div class="list" id="projectList">
           ${list.length ? list.map(p=>projectCard(p)).join("") : `<div class="sub">No projects yet. Create your first one.</div>`}
         </div>
@@ -3808,6 +3812,9 @@ function bindLeadPrecon(lead){
     save(); refresh();
   };
 
+  const gen = document.getElementById("preconGenerate");
+  if(gen) gen.onclick = ()=>{ list = defaultPreconChecklist(); save(); refresh(); };
+
   const reset = document.getElementById("preconReset");
   if(reset) reset.onclick = ()=>{
     list = defaultPreconChecklist();
@@ -3881,7 +3888,7 @@ function renderLeadDetail(app, params){
       <div class="row space">
         <div>
           <h2>${escapeHtml(l.clientName||"Unnamed lead")}</h2>
-          <div class="sub">${escapeHtml(l.status||"New")}</div>
+          <div class="sub">${escapeHtml(l.status||"New")}${(()=>{const list=preconChecklistFromLead(l); const p=preconProgress(list); return ` <span class="badge" style="margin-left:8px">Precon ${p.pct}%</span>`;})()}</div>
         </div>
         <div class="row" style="gap:10px;flex-wrap:wrap">
           <button class="btn" id="editLead" type="button">Edit</button>
@@ -3926,6 +3933,7 @@ function renderLeadDetail(app, params){
         <div style="margin-top:12px" id="preconList"></div>
         <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:12px">
           <button class="btn" type="button" id="preconMarkAll">Mark all complete</button>
+          <button class="btn" type="button" id="preconGenerate">Generate NZ template</button>
           <button class="btn ghost" type="button" id="preconReset">Reset</button>
         </div>
         <div class="smallmuted" style="margin-top:8px">This is stored inside the lead as <code>preconChecklistJson</code> (local-only for now).</div>
@@ -3939,6 +3947,22 @@ function renderLeadDetail(app, params){
     navTo("pipeline");
   };
   $("#convertLead").onclick = ()=> convertLeadToProject(l.id);
+
+  try{ bindLeadPrecon(l); }catch(e){ console.warn("precon bind failed", e); }
+  const ov = document.getElementById("leadOverview");
+  const pc = document.getElementById("preconCard");
+  const bOv = document.getElementById("tabLeadOverview");
+  const bPc = document.getElementById("tabLeadPrecon");
+  function showTab(which){
+    if(ov) ov.style.display = (which==="overview") ? "" : "none";
+    if(pc) pc.style.display = (which==="precon") ? "" : "none";
+    if(bOv) bOv.classList.toggle("active", which==="overview");
+    if(bPc) bPc.classList.toggle("active", which==="precon");
+  }
+  if(bOv) bOv.onclick = ()=>showTab("overview");
+  if(bPc) bPc.onclick = ()=>showTab("precon");
+  // default
+  showTab("overview");
 }
 
 function openLeadForm(seed={}){
