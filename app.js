@@ -303,7 +303,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
+// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -396,7 +396,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
+// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -427,17 +427,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
-// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
-// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
-// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
-// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
-// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
-// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
-// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
-// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
-// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
-// BUILD V12_V7_LOOK_TAP_DETAILS 20260122221121
+// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
+// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
+// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
+// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
+// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
+// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
+// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
+// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
+// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
+// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
+// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -3006,9 +3006,7 @@ function renderTasks(app, params){
     const tsel = aliveArr(state.tasks).find(t=>String(t.id)===String(selectedId));
     if(tsel){
       state.uiSelections.tasks = state.uiSelections.tasks || {};
-      state.uiSelections.tasks.selectedId = String(selectedId);
-      saveState(state);
-      app.innerHTML = renderTaskDetail(tsel);
+      state.app.innerHTML = renderTaskDetail(tsel);
       bindTaskDetail(tsel, projectId);
       return;
     } else {
@@ -3303,9 +3301,7 @@ function renderDiary(app, params){
     const dsel = aliveArr(state.diary).find(d=>String(d.id)===String(selectedId));
     if(dsel){
       state.uiSelections.diary = state.uiSelections.diary || {};
-      state.uiSelections.diary.selectedId = String(selectedId);
-      saveState(state);
-      app.innerHTML = renderDiaryDetail(dsel);
+      state.app.innerHTML = renderDiaryDetail(dsel);
       bindDiaryDetail(dsel, projectId);
       return;
     } else {
@@ -6241,10 +6237,25 @@ function renderTaskDetailPane(t){
   const p = projectById(t.projectId);
   const status = t.status || "Open";
   const due = t.dueDate ? dateFmt(t.dueDate) : "";
+  const priority = t.priority || "";
+  const assigned = t.assignedTo || t.assignee || t.owner || "";
+  const category = t.category || t.trade || "";
+  const created = t.createdAt ? dateFmt(String(t.createdAt).slice(0,10)) : "";
+  const updated = t.updatedAt ? dateFmt(String(t.updatedAt).slice(0,10)) : "";
   const photosTaken = !!(t.photosTaken || (t.photosJson && String(t.photosJson).trim()));
+  const fields = [
+    ["Status", status],
+    ["Due", due],
+    ["Priority", priority],
+    ["Assigned", assigned],
+    ["Category", category],
+    ["Created", created],
+    ["Updated", updated],
+    ["Photos taken", photosTaken ? "Yes" : "No"]
+  ].filter(x=>x[1]);
   return `
     <div class="row space" style="align-items:flex-start; gap:10px; flex-wrap:wrap">
-      <div>
+      <div style="min-width:220px">
         <div class="h3" style="margin:0">${escapeHtml(t.title||"(Untitled task)")}</div>
         <div class="sub">${p ? escapeHtml(p.name||p.address||"") : "No project"}</div>
       </div>
@@ -6252,12 +6263,15 @@ function renderTaskDetailPane(t){
         <button class="btn ghost sm" id="taskDetailEdit" type="button">Edit</button>
       </div>
     </div>
-    <div class="row" style="gap:8px; margin-top:10px; flex-wrap:wrap">
-      <span class="badge">${escapeHtml(status)}</span>
-      ${due?`<span class="badge">Due ${escapeHtml(due)}</span>`:""}
-      ${photosTaken?`<span class="badge">Photos taken</span>`:""}
+    <div class="card" style="margin-top:10px">
+      <div class="grid two" style="gap:10px">
+        ${fields.map(([k,v])=>`<div><div class="sub">${escapeHtml(k)}</div><div style="margin-top:2px">${escapeHtml(String(v))}</div></div>`).join("")}
+      </div>
     </div>
-    ${t.description?`<div class="sub" style="margin-top:10px; white-space:pre-wrap">${escapeHtml(t.description)}</div>`:""}
+    <div class="card" style="margin-top:10px">
+      <div class="sub">Description</div>
+      <div style="margin-top:6px; white-space:pre-wrap">${escapeHtml(t.description || t.notes || "") || "—"}</div>
+    </div>
   `;
 }
 function bindTaskDetailPane(t){
@@ -6270,22 +6284,43 @@ function renderDiaryDetailPane(d){
   const p = projectById(d.projectId);
   const date = d.date ? dateFmt(d.date) : "";
   const hours = (d.hours || d.totalHours || d.hoursWorked || "");
+  const workType = d.workType || d.activity || d.trade || "";
+  const crew = d.crew || d.workers || d.subbies || d.people || "";
+  const variation = d.variationText || d.variation || "";
+  const weather = d.weather || "";
+  const created = d.createdAt ? dateFmt(String(d.createdAt).slice(0,10)) : "";
+  const updated = d.updatedAt ? dateFmt(String(d.updatedAt).slice(0,10)) : "";
   const photosTaken = !!(d.photosTaken || (d.photosJson && String(d.photosJson).trim()));
+  const fields = [
+    ["Date", date],
+    ["Hours", hours!=="" ? String(hours) : ""],
+    ["Work type", workType],
+    ["Crew / Subbies", crew],
+    ["Weather", weather],
+    ["Variation", variation],
+    ["Photos taken", photosTaken ? "Yes" : "No"],
+    ["Created", created],
+    ["Updated", updated]
+  ].filter(x=>x[1]);
   return `
     <div class="row space" style="align-items:flex-start; gap:10px; flex-wrap:wrap">
-      <div>
+      <div style="min-width:220px">
         <div class="h3" style="margin:0">${escapeHtml(date||"(No date)")}</div>
-        <div class="sub">${p ? escapeHtml(p.name||p.address||"") : "No project"}${hours!==""?` • <b>${escapeHtml(String(hours))}h</b>`:""}</div>
+        <div class="sub">${p ? escapeHtml(p.name||p.address||"") : "No project"}</div>
       </div>
       <div class="row" style="gap:10px">
         <button class="btn ghost sm" id="diaryDetailEdit" type="button">Edit</button>
       </div>
     </div>
-    <div class="row" style="gap:8px; margin-top:10px; flex-wrap:wrap">
-      ${photosTaken?`<span class="badge">Photos taken</span>`:""}
-      ${(d.variation||d.variationText)?`<span class="badge">Variation</span>`:""}
+    <div class="card" style="margin-top:10px">
+      <div class="grid two" style="gap:10px">
+        ${fields.map(([k,v])=>`<div><div class="sub">${escapeHtml(k)}</div><div style="margin-top:2px">${escapeHtml(String(v))}</div></div>`).join("")}
+      </div>
     </div>
-    <div class="sub" style="margin-top:10px; white-space:pre-wrap">${escapeHtml(d.notes || d.note || "") || "—"}</div>
+    <div class="card" style="margin-top:10px">
+      <div class="sub">Notes</div>
+      <div style="margin-top:6px; white-space:pre-wrap">${escapeHtml(d.notes || d.note || d.description || "") || "—"}</div>
+    </div>
   `;
 }
 function bindDiaryDetailPane(d){
@@ -6299,7 +6334,7 @@ document.addEventListener("click",(ev)=>{
   if(!row) return;
   const id = row.dataset.id;
   const route = (typeof parseRoute==="function") ? parseRoute() : {path:""};
-  if(route.path==="tasks"){
+  if(route.path==="tasks" || route.path==="tasks/"){
     setSelected("tasks", id);
     const t = aliveArr(state.tasks).find(x=>String(x.id)===String(id));
     const body = document.getElementById("taskDetailBody");
@@ -6309,7 +6344,7 @@ document.addEventListener("click",(ev)=>{
       body.classList.remove("flash"); void body.offsetWidth; body.classList.add("flash");
     }
   }
-  if(route.path==="diary"){
+  if(route.path==="diary" || route.path==="diary/"){
     setSelected("diary", id);
     const d = aliveArr(state.diary).find(x=>String(x.id)===String(id));
     const body = document.getElementById("diaryDetailBody");
