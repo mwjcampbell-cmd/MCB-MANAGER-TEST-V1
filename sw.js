@@ -1,4 +1,4 @@
-const CACHE="mcb-cache-precon-tabs-working2-20260122054731";
+const CACHE="mcb-cache-precon-templates-20260122055944";
 const ASSETS = [
   "./",
   "./index.html",

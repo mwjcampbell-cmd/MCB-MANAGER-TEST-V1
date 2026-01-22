@@ -1,5 +1,42 @@
 
 
+const PRECON_TEMPLATES = {
+  "standard_nz": { name: "Standard NZ Residential", add: [] },
+  "new_build": { name: "New Build", add: [{key:"survey_setout",label:"Survey / set-out confirmed (if required)",done:false},{key:"geotech",label:"Geotech / bearing info confirmed (if applicable)",done:false},{key:"bracing_strategy",label:"Bracing strategy confirmed",done:false},{key:"roofing_package",label:"Roofing package confirmed",done:false},{key:"cladding_package",label:"Cladding system confirmed",done:false},{key:"drainage_design",label:"Drainage design / as-builts planned",done:false},{key:"air_tightness",label:"Air/insulation plan confirmed (wrap, cavity, R-values)",done:false}] },
+  "renovation": { name: "Renovation / Alteration", add: [{key:"asbestos_check",label:"Asbestos risk considered / testing plan (if applicable)",done:false},{key:"temporary_weatherproofing",label:"Temporary weatherproofing plan",done:false},{key:"existing_services_isolation",label:"Existing services isolation plan (water/power/gas)",done:false},{key:"temporary_support",label:"Temporary propping / support plan (if required)",done:false},{key:"staging_access",label:"Staging & access plan (clients living in?)",done:false}] },
+  "extension": { name: "Extension / Addition", add: [{key:"tie_in_details",label:"Tie-in details confirmed (existing-to-new junctions)",done:false},{key:"weathertightness_junctions",label:"Weathertightness junctions reviewed",done:false},{key:"existing_foundations_checked",label:"Existing foundations assessed (if applicable)",done:false},{key:"temporary_weatherproofing",label:"Temporary weatherproofing plan",done:false}] },
+  "bathroom": { name: "Bathroom / Wet Area", add: [{key:"waterproofing_system",label:"Waterproofing system & applicator confirmed",done:false},{key:"wet_area_inspections",label:"Wet-area inspection hold points set (pre/post waterproof)",done:false},{key:"tile_selection_confirmed",label:"Tiles/linings selections confirmed",done:false},{key:"plumbing_layout_confirmed",label:"Plumbing layout confirmed",done:false},{key:"ventilation_plan",label:"Ventilation plan confirmed (fans/ducting)",done:false}] },
+  "deck": { name: "Deck / External", add: [{key:"deck_h4_h5",label:"H4/H5 timber requirements confirmed",done:false},{key:"ledger_flashing",label:"Ledger/flashing detailing confirmed",done:false},{key:"handrail_compliance",label:"Handrail/balustrade compliance confirmed (height/gaps)",done:false},{key:"pile_bearer_layout",label:"Pile/bearer/joist layout confirmed",done:false}] },
+  "re_roof": { name: "Re-roof / Roofing", add: [{key:"scaffold_plan",label:"Scaffold / edge protection plan",done:false},{key:"roof_underlay_spec",label:"Underlay/flashings spec confirmed",done:false},{key:"spouting_plan",label:"Spouting/downpipe plan confirmed",done:false},{key:"weathertightness_details",label:"Weathertightness details reviewed (penetrations/valleys)",done:false}] }
+};
+
+function getLeadJobTypeKey(lead){
+  const raw = (lead && (lead.jobType || lead.workType || lead.type || lead.tradeType || "")) || "";
+  const t = String(raw).toLowerCase();
+  if(t.includes("new")) return "new_build";
+  if(t.includes("reno") || t.includes("alter")) return "renovation";
+  if(t.includes("exten") || t.includes("addition")) return "extension";
+  if(t.includes("bath")) return "bathroom";
+  if(t.includes("deck")) return "deck";
+  if(t.includes("roof")) return "re_roof";
+  return "standard_nz";
+}
+
+function applyPreconTemplateToLead(lead, templateKey){
+  const base = defaultPreconChecklist();
+  const tpl = PRECON_TEMPLATES[templateKey] || PRECON_TEMPLATES.standard_nz;
+  // add items at end, avoiding duplicates by key
+  const existingKeys = new Set(base.map(i=>i.key));
+  const add = Array.isArray(tpl.add) ? tpl.add : [];
+  add.forEach(it=>{ if(!existingKeys.has(it.key)) base.push(it); });
+  lead.preconTemplateKey = templateKey;
+  lead.preconChecklistJson = JSON.stringify(base);
+  updateLead(lead);
+  return base;
+}
+
+
+
 function setLeadTab2(tab){
   const btnO = document.getElementById("tabLeadOverview");
   const btnP = document.getElementById("tabLeadPrecon");
@@ -207,7 +244,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD PRECON_TABS_WORKING2 20260122054731
+// BUILD PRECON_TEMPLATES 20260122055944
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -300,7 +337,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD PRECON_TABS_WORKING2 20260122054731
+// BUILD PRECON_TEMPLATES 20260122055944
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -326,17 +363,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD PRECON_TABS_WORKING2 20260122054731
-// BUILD PRECON_TABS_WORKING2 20260122054731
-// BUILD PRECON_TABS_WORKING2 20260122054731
-// BUILD PRECON_TABS_WORKING2 20260122054731
-// BUILD PRECON_TABS_WORKING2 20260122054731
-// BUILD PRECON_TABS_WORKING2 20260122054731
-// BUILD PRECON_TABS_WORKING2 20260122054731
-// BUILD PRECON_TABS_WORKING2 20260122054731
-// BUILD PRECON_TABS_WORKING2 20260122054731
-// BUILD PRECON_TABS_WORKING2 20260122054731
-// BUILD PRECON_TABS_WORKING2 20260122054731
+// BUILD PRECON_TEMPLATES 20260122055944
+// BUILD PRECON_TEMPLATES 20260122055944
+// BUILD PRECON_TEMPLATES 20260122055944
+// BUILD PRECON_TEMPLATES 20260122055944
+// BUILD PRECON_TEMPLATES 20260122055944
+// BUILD PRECON_TEMPLATES 20260122055944
+// BUILD PRECON_TEMPLATES 20260122055944
+// BUILD PRECON_TEMPLATES 20260122055944
+// BUILD PRECON_TEMPLATES 20260122055944
+// BUILD PRECON_TEMPLATES 20260122055944
+// BUILD PRECON_TEMPLATES 20260122055944
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -3814,6 +3851,22 @@ function bindLeadPrecon(lead){
   if(!host || !badge) return;
 
   let list = preconChecklistFromLead(lead);
+  // template selector
+  const sel = document.getElementById("preconTemplateSelect");
+  const btnTpl = document.getElementById("preconApplyTemplate");
+  if(sel){
+    // default selection from lead job type, but don't overwrite user choice
+    sel.value = lead.preconTemplateKey || getLeadJobTypeKey(lead) || "standard_nz";
+  }
+  if(btnTpl && sel){
+    btnTpl.onclick = ()=>{
+      const key = sel.value || "standard_nz";
+      if(!confirm("Apply this template? This will replace the current checklist for this lead.")) return;
+      list = applyPreconTemplateToLead(lead, key);
+      refresh();
+    };
+  }
+
 
   const refresh = ()=>{
     host.innerHTML = list.map((it, i)=>renderPreconItemRow(it, i)).join("");
@@ -3983,6 +4036,19 @@ function renderLeadDetail(app, params){
           <h3>Preconstruction checklist</h3>
           <span class="badge" id="preconProgressBadge">0/0</span>
         </div>
+        <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:12px">
+          <select class="input" id="preconTemplateSelect" style="flex:1; min-width:220px">
+            <option value="standard_nz">Standard NZ Residential</option>
+            <option value="new_build">New Build</option>
+            <option value="renovation">Renovation / Alteration</option>
+            <option value="extension">Extension / Addition</option>
+            <option value="bathroom">Bathroom / Wet Area</option>
+            <option value="deck">Deck / External</option>
+            <option value="re_roof">Re-roof / Roofing</option>
+          </select>
+          <button class="btn" type="button" id="preconApplyTemplate">Apply template</button>
+        </div>
+
         <div class="sub" style="margin-top:6px">NZ residential preconstruction checklist (editable per lead).</div>
         <div style="margin-top:12px" id="preconList"></div>
         <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:12px">
