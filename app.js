@@ -293,7 +293,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD EQUIPMENT_FLEET_NAVFIX 20260122095330
+// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -386,7 +386,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD EQUIPMENT_FLEET_NAVFIX 20260122095330
+// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -412,17 +412,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD EQUIPMENT_FLEET_NAVFIX 20260122095330
-// BUILD EQUIPMENT_FLEET_NAVFIX 20260122095330
-// BUILD EQUIPMENT_FLEET_NAVFIX 20260122095330
-// BUILD EQUIPMENT_FLEET_NAVFIX 20260122095330
-// BUILD EQUIPMENT_FLEET_NAVFIX 20260122095330
-// BUILD EQUIPMENT_FLEET_NAVFIX 20260122095330
-// BUILD EQUIPMENT_FLEET_NAVFIX 20260122095330
-// BUILD EQUIPMENT_FLEET_NAVFIX 20260122095330
-// BUILD EQUIPMENT_FLEET_NAVFIX 20260122095330
-// BUILD EQUIPMENT_FLEET_NAVFIX 20260122095330
-// BUILD EQUIPMENT_FLEET_NAVFIX 20260122095330
+// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
+// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
+// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
+// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
+// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
+// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
+// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
+// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
+// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
+// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
+// BUILD EQUIPMENT_FLEET_ACCESSFIX 20260122095910
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -4221,7 +4221,19 @@ function leadCard(l){
         </div>
       </div>
     </div>
-  `;
+  
+    <div class="card" style="margin-top:12px">
+      <div class="row space" style="align-items:center; gap:10px; flex-wrap:wrap">
+        <div>
+          <div class="h3">Company modules</div>
+          <div class="sub">Access company-wide registers.</div>
+        </div>
+        <div class="row" style="gap:10px">
+          <button class="btn" id="btnOpenEquipment" type="button">Open Equipment & Fleet</button>
+        </div>
+      </div>
+    </div>
+`;
 }
 
 function renderPreconItemRow(item, idx){
