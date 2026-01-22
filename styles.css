@@ -659,3 +659,7 @@ main, .content, #app{
 
 /* Precon template selector */
 #preconTemplateSelect{max-width:520px}
+
+.btn.disabled{opacity:.55; filter:saturate(.7); cursor:not-allowed}
+
+#preconGateHint{color: rgba(220,220,220,.75)}

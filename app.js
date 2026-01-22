@@ -1,5 +1,25 @@
 
 
+const PRECON_REQUIRED_KEYS = ["scope_confirmed_written", "plans_received_current", "consent_required", "hs_hazards_created", "long_leads_identified", "programme_draft_created"];
+function leadIsConverted(lead){
+  const s = String((lead && (lead.status||lead.stage||""))).toLowerCase();
+  return !!(lead && (lead.convertedAt || lead.converted || lead.isConverted)) || s.includes("convert");
+}
+function preconGateInfo(lead){
+  const list = preconChecklistFromLead(lead);
+  const map = new Map();
+  (list||[]).forEach(it=>map.set(it.key, it));
+  const missing = [];
+  PRECON_REQUIRED_KEYS.forEach(k=>{
+    const it = map.get(k);
+    if(!it || !it.done) missing.push(it ? it.label : k);
+  });
+  const ok = missing.length === 0;
+  return {ok, missing, list};
+}
+
+
+
 const PRECON_TEMPLATES = {
   "standard_nz": { name: "Standard NZ Residential", add: [] },
   "new_build": { name: "New Build", add: [{key:"survey_setout",label:"Survey / set-out confirmed (if required)",done:false},{key:"geotech",label:"Geotech / bearing info confirmed (if applicable)",done:false},{key:"bracing_strategy",label:"Bracing strategy confirmed",done:false},{key:"roofing_package",label:"Roofing package confirmed",done:false},{key:"cladding_package",label:"Cladding system confirmed",done:false},{key:"drainage_design",label:"Drainage design / as-builts planned",done:false},{key:"air_tightness",label:"Air/insulation plan confirmed (wrap, cavity, R-values)",done:false}] },
@@ -244,7 +264,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
+// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -337,7 +357,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
+// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -363,17 +383,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
-// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
-// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
-// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
-// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
-// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
-// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
-// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
-// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
-// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
-// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
+// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
+// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
+// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
+// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
+// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
+// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
+// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
+// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
+// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
+// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
+// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -3854,6 +3874,15 @@ function bindLeadPrecon(lead){
   // template selector
   const sel = document.getElementById("preconTemplateSelect");
   const btnTpl = document.getElementById("preconApplyTemplate");
+  const preconLocked = leadIsConverted(lead);
+  const lockNote = document.getElementById("preconLockedNote");
+  if(lockNote) lockNote.style.display = preconLocked ? "" : "none";
+
+  if(preconLocked){
+    if(sel) sel.disabled = true;
+    if(btnTpl) btnTpl.disabled = true;
+  }
+
   if(sel){
     // default selection from lead job type, but don't overwrite user choice
     sel.value = lead.preconTemplateKey || getLeadJobTypeKey(lead) || "standard_nz";
@@ -3873,7 +3902,14 @@ function bindLeadPrecon(lead){
     const prog = preconProgress(list);
     badge.textContent = `${prog.done}/${prog.total} (${prog.pct}%)`;
     // bind
-    host.querySelectorAll("[data-precon-check]").forEach(el=>{
+    
+    if(preconLocked){
+      host.querySelectorAll("input,select,button").forEach(el=>{ 
+        if(el.id==="preconMarkAll" || el.id==="preconReset") return;
+      });
+      host.querySelectorAll("[data-precon-check],[data-precon-choice]").forEach(el=>{ el.disabled = true; });
+    }
+host.querySelectorAll("[data-precon-check]").forEach(el=>{
       el.onchange = ()=>{
         const i = Number(el.getAttribute("data-precon-check"));
         list[i].done = !!el.checked;
@@ -3904,6 +3940,8 @@ function bindLeadPrecon(lead){
   };
 
   const markAll = document.getElementById("preconMarkAll");
+  if(preconLocked){ if(markAll) markAll.disabled=true; }
+
   if(markAll) markAll.onclick = ()=>{
     list = list.map(it=>{
       const c = {...it};
@@ -3915,6 +3953,8 @@ function bindLeadPrecon(lead){
   };
 
   const reset = document.getElementById("preconReset");
+  if(preconLocked){ if(reset) reset.disabled=true; }
+
   if(reset) reset.onclick = ()=>{
     list = defaultPreconChecklist();
     save(); refresh();
@@ -4050,6 +4090,8 @@ function renderLeadDetail(app, params){
         </div>
 
         <div class="sub" style="margin-top:6px">NZ residential preconstruction checklist (editable per lead).</div>
+        <div class="smallmuted" id="preconLockedNote" style="margin-top:6px; display:none">Precon is locked after conversion.</div>
+
         <div style="margin-top:12px" id="preconList"></div>
         <div class="row" style="gap:10px; flex-wrap:wrap; margin-top:12px">
           <button class="btn" type="button" id="preconMarkAll">Mark all complete</button>
