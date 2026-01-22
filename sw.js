@@ -1,4 +1,4 @@
-const CACHE="mcb-cache-precon-templates-20260122055944";
+const CACHE="mcb-cache-precon-applyfix-20260122061634";
 const ASSETS = [
   "./",
   "./index.html",

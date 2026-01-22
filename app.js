@@ -31,7 +31,7 @@ function applyPreconTemplateToLead(lead, templateKey){
   add.forEach(it=>{ if(!existingKeys.has(it.key)) base.push(it); });
   lead.preconTemplateKey = templateKey;
   lead.preconChecklistJson = JSON.stringify(base);
-  updateLead(lead);
+  if(typeof saveLead==='function'){ saveLead(lead); } else if(typeof updateLead==='function'){ updateLead(lead); }
   return base;
 }
 
@@ -244,7 +244,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD PRECON_TEMPLATES 20260122055944
+// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -337,7 +337,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD PRECON_TEMPLATES 20260122055944
+// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -363,17 +363,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD PRECON_TEMPLATES 20260122055944
-// BUILD PRECON_TEMPLATES 20260122055944
-// BUILD PRECON_TEMPLATES 20260122055944
-// BUILD PRECON_TEMPLATES 20260122055944
-// BUILD PRECON_TEMPLATES 20260122055944
-// BUILD PRECON_TEMPLATES 20260122055944
-// BUILD PRECON_TEMPLATES 20260122055944
-// BUILD PRECON_TEMPLATES 20260122055944
-// BUILD PRECON_TEMPLATES 20260122055944
-// BUILD PRECON_TEMPLATES 20260122055944
-// BUILD PRECON_TEMPLATES 20260122055944
+// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
+// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
+// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
+// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
+// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
+// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
+// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
+// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
+// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
+// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
+// BUILD PRECON_TEMPLATES_APPLYFIX 20260122061634
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -3897,7 +3897,7 @@ function bindLeadPrecon(lead){
     try{
       // persist back onto lead record (local-only lead store)
       lead.preconChecklistJson = JSON.stringify(list);
-      updateLead(lead);
+      if(typeof saveLead==='function'){ saveLead(lead); } else if(typeof updateLead==='function'){ updateLead(lead); }
     }catch(e){
       console.warn("precon save failed", e);
     }
