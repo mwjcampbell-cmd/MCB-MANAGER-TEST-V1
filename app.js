@@ -293,7 +293,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD FLEET_TAB_FIX 20260122180921
+// BUILD FLEET_NAV_INJECT 20260122181532
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -386,7 +386,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD FLEET_TAB_FIX 20260122180921
+// BUILD FLEET_NAV_INJECT 20260122181532
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -412,17 +412,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD FLEET_TAB_FIX 20260122180921
-// BUILD FLEET_TAB_FIX 20260122180921
-// BUILD FLEET_TAB_FIX 20260122180921
-// BUILD FLEET_TAB_FIX 20260122180921
-// BUILD FLEET_TAB_FIX 20260122180921
-// BUILD FLEET_TAB_FIX 20260122180921
-// BUILD FLEET_TAB_FIX 20260122180921
-// BUILD FLEET_TAB_FIX 20260122180921
-// BUILD FLEET_TAB_FIX 20260122180921
-// BUILD FLEET_TAB_FIX 20260122180921
-// BUILD FLEET_TAB_FIX 20260122180921
+// BUILD FLEET_NAV_INJECT 20260122181532
+// BUILD FLEET_NAV_INJECT 20260122181532
+// BUILD FLEET_NAV_INJECT 20260122181532
+// BUILD FLEET_NAV_INJECT 20260122181532
+// BUILD FLEET_NAV_INJECT 20260122181532
+// BUILD FLEET_NAV_INJECT 20260122181532
+// BUILD FLEET_NAV_INJECT 20260122181532
+// BUILD FLEET_NAV_INJECT 20260122181532
+// BUILD FLEET_NAV_INJECT 20260122181532
+// BUILD FLEET_NAV_INJECT 20260122181532
+// BUILD FLEET_NAV_INJECT 20260122181532
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -440,6 +440,23 @@ function showApp(){
   render(); try{renderDeletedProjectsUI();}catch(e){}
 }
 
+
+function ensureFleetNav(){
+  try{
+    const nav = document.querySelector(".footerbar .nav");
+    if(!nav) return;
+    if(nav.querySelector('[data-nav="fleet"]')) return;
+    const btn = document.createElement("button");
+    btn.className = "btn";
+    btn.dataset.nav = "fleet";
+    btn.type = "button";
+    btn.textContent = "Fleet";
+    // insert before Equipment if present, else before Settings
+    const before = nav.querySelector('[data-nav="equipment"]') || nav.querySelector('[data-nav="settings"]') || null;
+    nav.insertBefore(btn, before);
+    btn.addEventListener("click", ()=> navTo("fleet"));
+  }catch(e){}
+}
 
 function ensureEquipmentNav(){
   try{
@@ -477,6 +494,7 @@ function ensurePipelineNav(){
 
 document.addEventListener("DOMContentLoaded", ()=>{
   try{ensurePipelineNav();}catch(e){}
+  try{ensureFleetNav();}catch(e){}
   try{ensureEquipmentNav();}catch(e){}
   
   // Auto-bypass login if login UI is not present
