@@ -9,6 +9,11 @@ try{
     localStorage.setItem("mcb_app_last_update", new Date().toISOString());
   }
 }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
 
 
 function isProgrammeTaskRemoved(t){
@@ -234,6 +239,11 @@ function photosTakenFromJson(v){
     if(Array.isArray(v)) return v.length > 0;
     if(typeof v === "object") return Object.keys(v).length > 0;
   }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
   return false;
 }
 
@@ -293,7 +303,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD V6_EDIT_DELETE_FIX 20260122212135
+// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -386,7 +396,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD V6_EDIT_DELETE_FIX 20260122212135
+// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -406,23 +416,28 @@ function toast(msg, ms=2200){
     el.style.maxWidth = "92vw";
     el.style.textAlign = "center";
     document.body.appendChild(el);
-    setTimeout(()=>{ try{ el.remove(); }catch(e){} }, ms);
+    setTimeout(()=>{ try{ el.remove(); }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+ }, ms);
   }catch(e){
     // absolute fallback
     alert(String(msg ?? ""));
   }
 }
-// BUILD V6_EDIT_DELETE_FIX 20260122212135
-// BUILD V6_EDIT_DELETE_FIX 20260122212135
-// BUILD V6_EDIT_DELETE_FIX 20260122212135
-// BUILD V6_EDIT_DELETE_FIX 20260122212135
-// BUILD V6_EDIT_DELETE_FIX 20260122212135
-// BUILD V6_EDIT_DELETE_FIX 20260122212135
-// BUILD V6_EDIT_DELETE_FIX 20260122212135
-// BUILD V6_EDIT_DELETE_FIX 20260122212135
-// BUILD V6_EDIT_DELETE_FIX 20260122212135
-// BUILD V6_EDIT_DELETE_FIX 20260122212135
-// BUILD V6_EDIT_DELETE_FIX 20260122212135
+// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
+// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
+// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
+// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
+// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
+// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
+// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
+// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
+// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
+// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
+// BUILD V7_THEME_REFRESH_UPDATESTAMP 20260122213612
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -438,6 +453,11 @@ function showApp(){
   const ls=document.getElementById("loginScreen"); if(ls) ls.style.display="none";
   const ap=document.getElementById("app"); if(ap) ap.style.display="block";
   render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
 }
 
 
@@ -456,6 +476,11 @@ function ensureFleetNav(){
     nav.insertBefore(btn, before);
     btn.addEventListener("click", ()=> navTo("fleet"));
   }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
 }
 
 function ensureEquipmentNav(){
@@ -473,6 +498,11 @@ function ensureEquipmentNav(){
     nav.insertBefore(btn, before);
     btn.addEventListener("click", ()=> navTo("equipment"));
   }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
 }
 function ensurePipelineNav(){
   try{
@@ -490,15 +520,54 @@ function ensurePipelineNav(){
     // bind click (same pattern as others)
     btn.addEventListener("click", ()=> navTo("pipeline"));
   }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
 }
 
 document.addEventListener("DOMContentLoaded", ()=>{
+  try{ initTheme(); }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
+  try{ initUpdateStamp(); }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
+
+
   try{ensurePipelineNav();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
   try{ensureFleetNav();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
   try{ensureEquipmentNav();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
   
   // Auto-bypass login if login UI is not present
-  if(!document.getElementById("loginBtn")){ try{ showApp(); }catch(e){} }
+  if(!document.getElementById("loginBtn")){ try{ showApp(); }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+ }
 if(isLoggedIn()){
     showApp();
   } else {
@@ -918,6 +987,11 @@ try{
   state.projects = (state.projects||[]).map(p=> p ? ({...p, stage: p.stage || "Active Build"}) : p);
   if(!Array.isArray(state.leads)) state.leads = [];
 }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
 // ===== /PHASE A =====
 // H&S defaults
 state.hsProfiles = state.hsProfiles || [];
@@ -940,6 +1014,11 @@ const __NO_SW__ = new URLSearchParams(location.search).has("nosw");
 if("serviceWorker" in navigator){
   window.addEventListener("load", async ()=>{
     try{ await navigator.serviceWorker.register("./sw.js"); }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
   });
 }
 
@@ -1843,6 +1922,11 @@ function renderHSPage(app, params){
   // bind after DOM is injected
   try{ hsBindActions(); }catch(e){ console.warn("hsBindActions failed", e); }
   try{ hsEnsureDelegated(); }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
 }
 
 function render(){
@@ -1882,6 +1966,11 @@ window.addEventListener("hashchange", render);
 window.addEventListener("load", ()=>{
   if(!location.hash) navTo("projects");
   render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
 });
 
 // Footer nav
@@ -1959,6 +2048,11 @@ $("#importFile").addEventListener("change", async (e)=>{
     await saveSettings(settings);
     applyTheme();
     render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
     alert("Imported successfully.");
   }catch(err){
     console.error(err);
@@ -1975,6 +2069,11 @@ function renderFleetPage(app){
   setHeader("Fleet");
   app.innerHTML = renderFleet();
   try{ bindFleetEvents(); }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
 }
 
 function renderEquipmentPage(app){
@@ -1983,6 +2082,11 @@ function renderEquipmentPage(app){
   app.innerHTML = renderEquipment();
   // renderEquipment writes a full page; we still need to bind events
   try{ bindEquipmentEvents(); }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
 }
 
 function renderProjects(app){
@@ -2084,6 +2188,11 @@ function renderProjects(app){
       // keep subbies global
       saveState(state);
       render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
     }
   }));
   // Upcoming card navigation
@@ -2093,6 +2202,11 @@ function renderProjects(app){
         const nav = JSON.parse(decodeURIComponent(el.dataset.upnav));
         if(nav?.route) navTo(nav.route, nav.params || {});
       }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
     });
   });
   $("#upcomingRefresh") && ($("#upcomingRefresh").onclick = ()=> render());
@@ -2190,6 +2304,11 @@ function openProjectForm(p=null){
     saveState(state);
     closeModal();
     render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
   };
 
   $("#delP") && ($("#delP").onclick = ()=>{
@@ -2215,6 +2334,11 @@ function openProjectForm(p=null){
       saveState(state);
       closeModal();
       render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
     }
   });
 }
@@ -2434,6 +2558,11 @@ function bindProjectTabEvents(p, tab){
 
         saveState(state); renderTasks(app, { projectId });
 render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
       }
     });
   }
@@ -2448,6 +2577,11 @@ render(); try{renderDeletedProjectsUI();}catch(e){}
 
         saveState(state); renderDiary(app, { projectId });
 render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
       }
     });
   }
@@ -2462,6 +2596,11 @@ render(); try{renderDeletedProjectsUI();}catch(e){}
       p.programmeStartDate = sd || p.programmeStartDate || fmtISO(new Date());
       generateProgrammeForProject(p, { templateKey: tpl, complexity: cx });
       render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
     });
   }
 if(tab==="variations"){
@@ -2474,6 +2613,11 @@ if(tab==="variations"){
 // NOTE: soft delete handled elsewhere
 
         saveState(state); render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
       }
     });
   }
@@ -2495,6 +2639,11 @@ if(tab==="variations"){
           : t
         );
         saveState(state); render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
       }
     });
   }
@@ -2508,6 +2657,11 @@ if(tab==="variations"){
 // NOTE: soft delete handled elsewhere
 
         saveState(state); render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
       }
     });
   }
@@ -2522,6 +2676,11 @@ if(tab==="variations"){
 // NOTE: soft delete handled elsewhere
 
         saveState(state); render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
       }
     });
   }
@@ -3060,6 +3219,11 @@ t.updatedAt = new Date().toISOString();
     saveState(state);
     closeModal();
     render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
     } finally {
       __hint && __hint.remove();
       setBtnBusy(__btn, false);
@@ -3076,6 +3240,11 @@ t.updatedAt = new Date().toISOString();
       renderTasks(app, { projectId });
 closeModal();
       render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
     }
   });
 }
@@ -3338,6 +3507,11 @@ d.updatedAt = new Date().toISOString();
     saveState(state);
     closeModal();
     render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
     } finally {
       __hint && __hint.remove();
       setBtnBusy(__btn, false);
@@ -3354,6 +3528,11 @@ d.updatedAt = new Date().toISOString();
       renderDiary(app, { projectId });
 closeModal();
       render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
     }
   });
 }
@@ -3439,6 +3618,11 @@ function openVariationForm(seed={}){
     saveState(state);
     closeModal();
     render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
     } finally {
       __hint && __hint.remove();
       setBtnBusy(__btn, false);
@@ -3454,6 +3638,11 @@ function openVariationForm(seed={}){
       saveState(state);
       closeModal();
       render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
     }
   });
 }
@@ -3523,6 +3712,11 @@ function openSubbieForm(seed=null){
     saveState(state);
     closeModal();
     render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
   };
 
   $("#delS") && ($("#delS").onclick = ()=>{
@@ -3534,6 +3728,11 @@ function openSubbieForm(seed=null){
       saveState(state);
       closeModal();
       render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
     }
   });
 }
@@ -3622,6 +3821,11 @@ d.updatedAt = new Date().toISOString();
     saveState(state);
     closeModal();
     render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
     } finally {
       __hint && __hint.remove();
       setBtnBusy(__btn, false);
@@ -3637,6 +3841,11 @@ d.updatedAt = new Date().toISOString();
       saveState(state);
       closeModal();
       render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
     }
   });
 }
@@ -3735,6 +3944,11 @@ function openInspectionForm(seed={}){
     saveState(state);
     closeModal();
     render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
     } finally {
       __hint && __hint.remove();
       setBtnBusy(__btn, false);
@@ -3750,6 +3964,11 @@ function openInspectionForm(seed={}){
       saveState(state);
       closeModal();
       render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
     }
   });
 }
@@ -4175,7 +4394,12 @@ function renderSettings(app){
       navTo("projects");
     }
   };
-  setTimeout(()=>{ try{ renderDeletedProjectsUI(); }catch(e){} }, 0);
+  setTimeout(()=>{ try{ renderDeletedProjectsUI(); }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+ }, 0);
 
   // Settings: update helpers
   const _bfu = document.getElementById("btnForceRefresh");
@@ -4222,6 +4446,11 @@ function loadDemo(){
     photosJson: "[]", createdAt:new Date().toISOString(), updatedAt:new Date().toISOString() });
   saveState(state);
   render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
 }
 
 
@@ -4637,6 +4866,11 @@ function renderLeadDetail(app, params){
   $("#convertLead").onclick = ()=> convertLeadToProject(l.id);
   try{ bindLeadPrecon(l); }catch(e){ console.warn(e); }
   try{ setLeadTab2(window.__mcbLeadTab || 'overview'); }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
 
 }
 
@@ -4783,6 +5017,11 @@ function convertLeadToProject(leadId){
 function softDeleteById(arr, id){
   const now = new Date().toISOString();
   try{ if(typeof window.render==='function'){ setTimeout(()=>window.render(),0); } }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
   return (arr||[]).map(item => {
     if(item && item.id === id){
       return { ...item, deletedAt: now, updatedAt: now };
@@ -4827,6 +5066,11 @@ function restoreProject(id){
   const now=new Date().toISOString();
   state.projects=state.projects.map(p=>p.id===id?{...p,deletedAt:null,updatedAt:now}:p);
   saveState(state); render(); try{renderDeletedProjectsUI();}catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
 }
 
 /* ===== PHASE1_TASK_FILTERS ===== */
@@ -5078,6 +5322,11 @@ function refreshProgrammeTab(projectId){
 
 
 try{ localStorage.setItem("mcb_last_update_applied","2026-01-22T09:06:55.786767"); }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
 
 function updateAppUpdateStamp(){
   try{
@@ -5086,6 +5335,11 @@ function updateAppUpdateStamp(){
     const iso = localStorage.getItem("mcb_app_last_update") || "";
     el.textContent = "Last app update: " + (iso ? fmtNZDateTime(iso) : "—") + "  •  Build: " + BUILD_ID;
   }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
 }
 
 function equipmentById(id){ return aliveArr(state.equipment).find(e=>String(e.id)===String(id)); }
@@ -5143,6 +5397,11 @@ function fmtNZDateTime(iso){
 
 // Ensure equipment tables exist
 try{ state.equipment = aliveArr(state.equipment); state.equipmentLogs = aliveArr(state.equipmentLogs); }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
 
 
 
@@ -5454,6 +5713,11 @@ function migrateFleetEquipmentSplit(){
   }catch(e){ console.warn("split migrate failed", e); }
 }
 try{ migrateFleetEquipmentSplit(); }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
 
 
 
@@ -5763,6 +6027,11 @@ function bindFleetModal(id){
       upsertFleet(v);
       closeModal();
       try{ const r=parseRoute(); if(r.path==="fleet"){ requestRender(); } }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
     };
   }
   const del = document.getElementById("deleteFleetBtn");
@@ -5836,6 +6105,11 @@ function postRenderBindings(){
     if(r && r.path==="fleet" && typeof bindFleetEvents==="function") bindFleetEvents();
     if(r && r.path==="equipment" && typeof bindEquipmentEvents==="function") bindEquipmentEvents();
   }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
 }
 
 // MCB_EDIT_ONLY_DELEGATE_V6
@@ -5855,3 +6129,73 @@ document.addEventListener("click",(ev)=>{
     return;
   }
 });
+
+function setUpdateStatus(msg){
+  const el = document.getElementById("updateStatus");
+  if(el) el.textContent = msg;
+}
+
+async function forceAppRefresh(){
+  setUpdateStatus("Refreshing app… clearing cache & reloading");
+  try{
+    if("caches" in window){
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k=>caches.delete(k)));
+    }
+  }catch(e){ console.warn("cache clear failed", e); }
+  try{
+    if(navigator.serviceWorker){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r=>r.unregister()));
+    }
+  }catch(e){ console.warn("sw unregister failed", e); }
+  // Bust the URL so GitHub Pages serves latest
+  const u = new URL(location.href);
+  u.searchParams.set("v", String(Date.now()));
+  location.href = u.toString();
+}
+async function softAppRefresh(){
+  setUpdateStatus("Checking for updates… reloading");
+  const u = new URL(location.href);
+  u.searchParams.set("v", String(Date.now()));
+  location.href = u.toString();
+}
+
+// MCB_SETTINGS_REFRESH_DELEGATE_V7
+document.addEventListener("click",(ev)=>{
+  const b = ev.target && ev.target.closest ? ev.target.closest("#btnSoftRefresh,#btnHardRefresh") : null;
+  if(!b) return;
+  if(b.id==="btnSoftRefresh") softAppRefresh();
+  if(b.id==="btnHardRefresh") forceAppRefresh();
+});
+
+function initUpdateStamp(){
+  try{
+    const prev = localStorage.getItem("mcb_last_build") || "";
+    if(prev !== BUILD_ID){
+      localStorage.setItem("mcb_last_build", BUILD_ID);
+      localStorage.setItem("mcb_last_update_at", new Date().toISOString());
+    }
+  }catch(e){}
+    try{
+      const lu = document.getElementById('lastUpdateStamp');
+      if(lu) lu.textContent = getLastUpdateStamp();
+    }catch(e){}
+
+}
+function fmtDDMMYYYY(dateStr){
+  try{
+    if(!dateStr) return "—";
+    const d = new Date(dateStr);
+    const dd = String(d.getDate()).padStart(2,"0");
+    const mm = String(d.getMonth()+1).padStart(2,"0");
+    const yy = d.getFullYear();
+    return `${dd}/${mm}/${yy}`;
+  }catch(e){ return "—"; }
+}
+function getLastUpdateStamp(){
+  try{
+    const iso = localStorage.getItem("mcb_last_update_at") || "";
+    return fmtDDMMYYYY(iso) + (iso?(" " + new Date(iso).toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})):"");
+  }catch(e){ return "—"; }
+}

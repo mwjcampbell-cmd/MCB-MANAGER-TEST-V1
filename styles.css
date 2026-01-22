@@ -689,3 +689,43 @@ main, .content, #app{
 .bottomNav{overflow-x:auto; -webkit-overflow-scrolling:touch}
 .bottomNav::-webkit-scrollbar{display:none}
 .navBtn{min-width:78px}
+
+
+/* V7 SIMPLE THEMES */
+:root[data-theme="dark"]{
+  --bg: #0b0f14;
+  --card: #101826;
+  --card2: #0f1724;
+  --text: #e6eefc;
+  --muted: rgba(230,238,252,.72);
+  --border: rgba(230,238,252,.10);
+  --primary: #4da3ff;
+  --danger: #ff5a5a;
+  --warn: #ffcc66;
+  --shadow: rgba(0,0,0,.45);
+}
+:root[data-theme="light"]{
+  --bg: #f6f8fb;
+  --card: #ffffff;
+  --card2: #ffffff;
+  --text: #0c1320;
+  --muted: rgba(12,19,32,.68);
+  --border: rgba(12,19,32,.10);
+  --primary: #1565d8;
+  --danger: #c62828;
+  --warn: #b26a00;
+  --shadow: rgba(0,0,0,.10);
+}
+/* Base usage */
+body{ background: var(--bg) !important; color: var(--text) !important; }
+.card,.listItem,.modalCard{ background: var(--card) !important; border-color: var(--border) !important; box-shadow: 0 10px 30px var(--shadow) !important; }
+.sub,.label{ color: var(--muted) !important; }
+.input{ background: var(--card2) !important; color: var(--text) !important; border-color: var(--border) !important; }
+.btn{ background: var(--primary) !important; color: #fff !important; border-color: transparent !important; }
+.btn.ghost{ background: transparent !important; color: var(--text) !important; border-color: var(--border) !important; }
+.badge{ border-color: var(--border) !important; color: var(--muted) !important; background: transparent !important; }
+.badge.danger{ border-color: rgba(255,90,90,.45) !important; color: #ffd4d4 !important; background: rgba(255,90,90,.10) !important; }
+.badge.warn{ border-color: rgba(255,204,102,.45) !important; color: #ffe4b3 !important; background: rgba(255,204,102,.10) !important; }
+.bottomNav{ background: var(--card) !important; border-top: 1px solid var(--border) !important; }
+.navBtn{ color: var(--muted) !important; }
+.navBtn.active{ color: var(--text) !important; }
