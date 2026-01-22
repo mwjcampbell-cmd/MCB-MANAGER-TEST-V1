@@ -293,7 +293,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD FLEET_NAV_INJECT 20260122181532
+// BUILD FLEET_ROUTE_FIX 20260122182507
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -386,7 +386,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD FLEET_NAV_INJECT 20260122181532
+// BUILD FLEET_ROUTE_FIX 20260122182507
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -412,17 +412,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD FLEET_NAV_INJECT 20260122181532
-// BUILD FLEET_NAV_INJECT 20260122181532
-// BUILD FLEET_NAV_INJECT 20260122181532
-// BUILD FLEET_NAV_INJECT 20260122181532
-// BUILD FLEET_NAV_INJECT 20260122181532
-// BUILD FLEET_NAV_INJECT 20260122181532
-// BUILD FLEET_NAV_INJECT 20260122181532
-// BUILD FLEET_NAV_INJECT 20260122181532
-// BUILD FLEET_NAV_INJECT 20260122181532
-// BUILD FLEET_NAV_INJECT 20260122181532
-// BUILD FLEET_NAV_INJECT 20260122181532
+// BUILD FLEET_ROUTE_FIX 20260122182507
+// BUILD FLEET_ROUTE_FIX 20260122182507
+// BUILD FLEET_ROUTE_FIX 20260122182507
+// BUILD FLEET_ROUTE_FIX 20260122182507
+// BUILD FLEET_ROUTE_FIX 20260122182507
+// BUILD FLEET_ROUTE_FIX 20260122182507
+// BUILD FLEET_ROUTE_FIX 20260122182507
+// BUILD FLEET_ROUTE_FIX 20260122182507
+// BUILD FLEET_ROUTE_FIX 20260122182507
+// BUILD FLEET_ROUTE_FIX 20260122182507
+// BUILD FLEET_ROUTE_FIX 20260122182507
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -1871,6 +1871,7 @@ function render(){
   if(path === "reports") return renderReports(app, params);
   if(path === "hs") return renderHSPage(app, params);
     if(path === "equipment") return renderEquipmentPage(app, params);
+  if(path === "fleet") return renderFleetPage(app, params);
 if(path === "settings") return renderSettings(app, params);
   renderDeletedProjectsUI();
   // fallback
@@ -1968,6 +1969,13 @@ $("#importFile").addEventListener("change", async (e)=>{
 });
 
 // ----------------- Projects -----------------
+
+
+function renderFleetPage(app){
+  setHeader("Fleet");
+  app.innerHTML = renderFleet();
+  try{ bindFleetEvents(); }catch(e){}
+}
 
 function renderEquipmentPage(app){
   setHeader("Equipment");
