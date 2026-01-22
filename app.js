@@ -293,7 +293,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
+// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -386,7 +386,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
+// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -412,17 +412,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
-// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
-// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
-// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
-// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
-// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
-// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
-// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
-// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
-// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
-// BUILD EQUIPMENT_FLEET_C_BOTH_FIX 20260122102618
+// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
+// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
+// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
+// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
+// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
+// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
+// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
+// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
+// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
+// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
+// BUILD EQUIPMENT_FLEET_MODALFIX 20260122104158
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -1067,6 +1067,23 @@ function closeModal(){
   $("#modalBack").classList.remove("show");
   $("#modal").innerHTML = "";
 }
+
+function openModal(html){
+  $("#modal").innerHTML = html || "";
+  $("#modalBack").classList.add("show");
+
+  // Close actions
+  const closeBtn = $("#closeModalBtn", $("#modal"));
+  const cancelBtn = $("#cancelModalBtn", $("#modal"));
+  if(closeBtn) closeBtn.onclick = closeModal;
+  if(cancelBtn) cancelBtn.onclick = closeModal;
+
+  // Clicking the backdrop closes the modal
+  $("#modalBack").onclick = (e)=>{
+    if(e && e.target && e.target.id==="modalBack") closeModal();
+  };
+}
+
 $("#modalBack").addEventListener("click", (e)=>{
   if(e.target.id === "modalBack") closeModal();
 });
