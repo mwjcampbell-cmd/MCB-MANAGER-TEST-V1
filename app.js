@@ -293,7 +293,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
+// BUILD EQUIPMENT_FLEET_V1 20260122093334
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -386,7 +386,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
+// BUILD EQUIPMENT_FLEET_V1 20260122093334
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -412,17 +412,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
-// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
-// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
-// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
-// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
-// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
-// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
-// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
-// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
-// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
-// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
+// BUILD EQUIPMENT_FLEET_V1 20260122093334
+// BUILD EQUIPMENT_FLEET_V1 20260122093334
+// BUILD EQUIPMENT_FLEET_V1 20260122093334
+// BUILD EQUIPMENT_FLEET_V1 20260122093334
+// BUILD EQUIPMENT_FLEET_V1 20260122093334
+// BUILD EQUIPMENT_FLEET_V1 20260122093334
+// BUILD EQUIPMENT_FLEET_V1 20260122093334
+// BUILD EQUIPMENT_FLEET_V1 20260122093334
+// BUILD EQUIPMENT_FLEET_V1 20260122093334
+// BUILD EQUIPMENT_FLEET_V1 20260122093334
+// BUILD EQUIPMENT_FLEET_V1 20260122093334
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -4942,6 +4942,51 @@ function updateAppUpdateStamp(){
   }catch(e){}
 }
 
+function equipmentById(id){ return aliveArr(state.equipment).find(e=>String(e.id)===String(id)); }
+function equipmentLogsFor(id){ return aliveArr(state.equipmentLogs).filter(l=>String(l.equipmentId)===String(id) && !l.deletedAt).sort((a,b)=>(b.date||"").localeCompare(a.date||"")); }
+function upsertEquipment(e){
+  state.equipment = aliveArr(state.equipment);
+  const idx = state.equipment.findIndex(x=>String(x.id)===String(e.id));
+  if(idx>=0) state.equipment[idx]=e; else state.equipment.unshift(e);
+  saveState(state);
+}
+function softDeleteEquipment(id){
+  const e = equipmentById(id);
+  if(!e) return;
+  e.deletedAt = new Date().toISOString();
+  upsertEquipment(e);
+}
+function upsertEquipmentLog(l){
+  state.equipmentLogs = aliveArr(state.equipmentLogs);
+  const idx = state.equipmentLogs.findIndex(x=>String(x.id)===String(l.id));
+  if(idx>=0) state.equipmentLogs[idx]=l; else state.equipmentLogs.unshift(l);
+  saveState(state);
+}
+function softDeleteEquipmentLog(id){
+  const l = aliveArr(state.equipmentLogs).find(x=>String(x.id)===String(id));
+  if(!l) return;
+  l.deletedAt = new Date().toISOString();
+  upsertEquipmentLog(l);
+}
+function fleetStatusBadges(e){
+  const today = new Date();
+  const soonDays = 30;
+  const parse = (s)=>{ try{ return s ? new Date(s) : null; }catch(e){ return null; } };
+  const badges = [];
+  const check = (label, dateStr)=>{
+    const d = parse(dateStr);
+    if(!d) return;
+    const diff = Math.ceil((d - today)/(1000*60*60*24));
+    if(diff < 0) badges.push(`<span class="badge danger">${label} overdue</span>`);
+    else if(diff <= soonDays) badges.push(`<span class="badge warn">${label} ${diff}d</span>`);
+    else badges.push(`<span class="badge">${label} ok</span>`);
+  };
+  check("Service", e.nextServiceDate);
+  check("WOF", e.wofExpiry);
+  check("Reg", e.regExpiry);
+  return badges.join(" ");
+}
+
 function fmtNZDateTime(iso){
   try{
     const d = new Date(iso);
@@ -4949,3 +4994,326 @@ function fmtNZDateTime(iso){
     return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }catch(e){ return iso || "—"; }
 }
+
+// Ensure equipment tables exist
+try{ state.equipment = aliveArr(state.equipment); state.equipmentLogs = aliveArr(state.equipmentLogs); }catch(e){}
+
+
+function renderEquipment(){
+  const items = aliveArr(state.equipment).filter(e=>!e.deletedAt);
+  const q = (state.ui && state.ui.equipmentQuery) ? String(state.ui.equipmentQuery).toLowerCase() : "";
+  const statusFilter = (state.ui && state.ui.equipmentStatus) ? state.ui.equipmentStatus : "active";
+  const filtered = items.filter(e=>{
+    const st = (e.status||"active");
+    if(statusFilter==="active" && st!=="active") return false;
+    if(statusFilter==="all") return true;
+    if(statusFilter==="retired" && st!=="retired") return false;
+    if(statusFilter==="maintenance" && st!=="maintenance") return false;
+    return true;
+  }).filter(e=>{
+    if(!q) return true;
+    const hay = `${e.name||""} ${e.type||""} ${e.assetTag||""} ${e.locationText||""}`.toLowerCase();
+    return hay.includes(q);
+  }).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+
+  const projMap = new Map(aliveArr(state.projects).map(p=>[String(p.id), p]));
+  const fmt = (s)=> s ? String(s).slice(0,10).split("-").reverse().join("/") : "—";
+
+  return `
+  <div class="page">
+    <div class="pageHeader">
+      <div>
+        <div class="h1">Equipment & Fleet</div>
+        <div class="sub">Track tool and vehicle locations, servicing, WOF & registration.</div>
+      </div>
+      <div class="row" style="gap:10px">
+        <button class="btn" id="btnAddEquipment" type="button">Add</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row" style="gap:10px; flex-wrap:wrap">
+        <input class="input" id="equipmentSearch" placeholder="Search equipment…" value="${escapeAttr(q)}" style="flex:1; min-width:220px" />
+        <select class="input" id="equipmentStatus" style="max-width:180px">
+          <option value="active" ${statusFilter==="active"?"selected":""}>Active</option>
+          <option value="maintenance" ${statusFilter==="maintenance"?"selected":""}>Maintenance</option>
+          <option value="retired" ${statusFilter==="retired"?"selected":""}>Retired</option>
+          <option value="all" ${statusFilter==="all"?"selected":""}>All</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="list">
+      ${filtered.length ? filtered.map(e=>{
+        const proj = e.projectId ? projMap.get(String(e.projectId)) : null;
+        const loc = proj ? `Site: ${escapeHtml(proj.name)} (${escapeHtml(proj.address||"")})` : (e.locationText ? escapeHtml(e.locationText) : "—");
+        return `
+        <div class="listItem">
+          <div class="row space" style="align-items:flex-start; gap:12px; flex-wrap:wrap">
+            <div style="min-width:220px">
+              <div style="font-weight:800; font-size:1.05rem">${escapeHtml(e.name||"Unnamed equipment")}</div>
+              <div class="sub">${escapeHtml(e.type||"")}${e.assetTag?` • ${escapeHtml(e.assetTag)}`:""}</div>
+              <div class="sub" style="margin-top:6px"><b>Location:</b> ${loc}</div>
+            </div>
+            <div style="flex:1; min-width:240px">
+              <div class="row" style="gap:8px; flex-wrap:wrap">${fleetStatusBadges(e)}</div>
+              <div class="sub" style="margin-top:6px">
+                Service due: <b>${fmt(e.nextServiceDate)}</b> • WOF: <b>${fmt(e.wofExpiry)}</b> • Reg: <b>${fmt(e.regExpiry)}</b>
+              </div>
+              ${e.notes?`<div class="sub" style="margin-top:6px">${escapeHtml(e.notes).slice(0,140)}${escapeHtml(e.notes).length>140?"…":""}</div>`:""}
+            </div>
+            <div class="row" style="gap:8px; align-items:center" class="noPrint">
+              <button class="btn ghost sm" type="button" data-eq-view="${escapeAttr(e.id)}">Open</button>
+              <button class="btn ghost sm" type="button" data-eq-edit="${escapeAttr(e.id)}">Edit</button>
+              <button class="btn ghost sm" type="button" data-eq-del="${escapeAttr(e.id)}">Delete</button>
+            </div>
+          </div>
+        </div>`;
+      }).join("") : `<div class="card"><div class="sub">No equipment yet. Tap <b>Add</b> to create your fleet register.</div></div>`}
+    </div>
+
+    <div class="sub" style="margin-top:14px; opacity:.8">Note: Equipment is stored locally for now. We can add spreadsheet sync once the forms/workflow are final.</div>
+  </div>`;
+}
+
+
+
+function equipmentFormModal(e){
+  const isNew = !e;
+  const eq = e ? {...e} : { id: uid(), status:"active", name:"", type:"", assetTag:"", projectId:"", locationText:"", notes:"", nextServiceDate:"", wofExpiry:"", regExpiry:"" };
+  const projs = aliveArr(state.projects).filter(p=>!p.deletedAt).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const fmtIn = (s)=> (s && String(s).length>=10) ? String(s).slice(0,10) : "";
+  return `
+  <div class="modal">
+    <div class="modalCard">
+      <div class="row space" style="align-items:center">
+        <div>
+          <div class="h2">${isNew?"Add equipment":"Edit equipment"}</div>
+          <div class="sub">Track location + servicing/WOF/registration.</div>
+        </div>
+        <button class="iconBtn" id="closeModalBtn" type="button">✕</button>
+      </div>
+
+      <div class="grid2" style="margin-top:14px">
+        <div>
+          <label class="label">Name</label>
+          <input class="input" id="eqName" value="${escapeAttr(eq.name)}" placeholder="e.g. Hilux Ute, Makita Kit, Mixer" />
+        </div>
+        <div>
+          <label class="label">Type</label>
+          <input class="input" id="eqType" value="${escapeAttr(eq.type)}" placeholder="Vehicle / Tool / Plant" />
+        </div>
+        <div>
+          <label class="label">Asset tag / plate</label>
+          <input class="input" id="eqAsset" value="${escapeAttr(eq.assetTag)}" placeholder="e.g. MCB-012 or ABC123" />
+        </div>
+        <div>
+          <label class="label">Status</label>
+          <select class="input" id="eqStatus">
+            <option value="active" ${eq.status==="active"?"selected":""}>Active</option>
+            <option value="maintenance" ${eq.status==="maintenance"?"selected":""}>Maintenance</option>
+            <option value="retired" ${eq.status==="retired"?"selected":""}>Retired</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="h3">Location</div>
+        <div class="grid2" style="margin-top:10px">
+          <div>
+            <label class="label">Assigned site (optional)</label>
+            <select class="input" id="eqProject">
+              <option value="">— Not linked to a site —</option>
+              ${projs.map(p=>`<option value="${escapeAttr(p.id)}" ${String(eq.projectId)===String(p.id)?"selected":""}>${escapeHtml(p.name||"Project")} • ${escapeHtml(p.address||"")}</option>`).join("")}
+            </select>
+          </div>
+          <div>
+            <label class="label">Location note (optional)</label>
+            <input class="input" id="eqLocText" value="${escapeAttr(eq.locationText||"")}" placeholder="e.g. Yard, Workshop, With sparky" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="h3">Fleet compliance</div>
+        <div class="grid3" style="margin-top:10px">
+          <div>
+            <label class="label">Service due</label>
+            <input class="input" id="eqServiceDue" type="date" value="${escapeAttr(fmtIn(eq.nextServiceDate))}" />
+          </div>
+          <div>
+            <label class="label">WOF expiry</label>
+            <input class="input" id="eqWof" type="date" value="${escapeAttr(fmtIn(eq.wofExpiry))}" />
+          </div>
+          <div>
+            <label class="label">Registration expiry</label>
+            <input class="input" id="eqReg" type="date" value="${escapeAttr(fmtIn(eq.regExpiry))}" />
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px">
+        <label class="label">Fleet notes</label>
+        <textarea class="input" id="eqNotes" rows="4" placeholder="Tyres, upcoming repairs, service history notes…">${escapeHtml(eq.notes||"")}</textarea>
+      </div>
+
+      <div class="row" style="justify-content:flex-end; gap:10px; margin-top:16px">
+        <button class="btn ghost" id="cancelModalBtn" type="button">Cancel</button>
+        <button class="btn" id="saveEqBtn" type="button">${isNew?"Create":"Save"}</button>
+      </div>
+
+      <div class="sub" style="margin-top:10px; opacity:.8">Tip: You can log services/repairs inside the equipment record after saving.</div>
+    </div>
+  </div>`;
+}
+function equipmentViewModal(eqId){
+  const e = equipmentById(eqId);
+  if(!e) return "";
+  const logs = equipmentLogsFor(eqId);
+  const fmt = (s)=> s ? String(s).slice(0,10).split("-").reverse().join("/") : "—";
+  const proj = e.projectId ? projectById(e.projectId) : null;
+  const loc = proj ? `Site: ${proj.name} (${proj.address||""})` : (e.locationText||"—");
+  return `
+  <div class="modal">
+    <div class="modalCard">
+      <div class="row space" style="align-items:center">
+        <div>
+          <div class="h2">${escapeHtml(e.name||"Equipment")}</div>
+          <div class="sub">${escapeHtml(e.type||"")}${e.assetTag?` • ${escapeHtml(e.assetTag)}`:""} • Status: <b>${escapeHtml(e.status||"active")}</b></div>
+        </div>
+        <button class="iconBtn" id="closeModalBtn" type="button">✕</button>
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="row space" style="align-items:center">
+          <div class="h3">Overview</div>
+          <div class="row" style="gap:8px">${fleetStatusBadges(e)}</div>
+        </div>
+        <div class="sub" style="margin-top:8px"><b>Location:</b> ${escapeHtml(loc)}</div>
+        <div class="sub" style="margin-top:6px">Service due: <b>${fmt(e.nextServiceDate)}</b> • WOF: <b>${fmt(e.wofExpiry)}</b> • Reg: <b>${fmt(e.regExpiry)}</b></div>
+        ${e.notes?`<div class="sub" style="margin-top:8px">${escapeHtml(e.notes)}</div>`:""}
+      </div>
+
+      <div class="card" style="margin-top:14px">
+        <div class="row space" style="align-items:center">
+          <div class="h3">Maintenance log</div>
+          <button class="btn ghost sm" type="button" data-eq-addlog="${escapeAttr(eqId)}">Add log</button>
+        </div>
+        ${logs.length ? logs.map(l=>`
+          <div class="listItem" style="margin-top:10px">
+            <div class="row space" style="gap:10px; flex-wrap:wrap">
+              <div>
+                <div style="font-weight:800">${escapeHtml(l.kind||"Log")}</div>
+                <div class="sub">${fmt(l.date)}${l.cost?` • $${escapeHtml(l.cost)}`:""}</div>
+                ${l.notes?`<div class="sub" style="margin-top:6px">${escapeHtml(l.notes)}</div>`:""}
+              </div>
+              <div class="row" style="gap:8px">
+                <button class="btn ghost sm" type="button" data-eq-editlog="${escapeAttr(l.id)}">Edit</button>
+                <button class="btn ghost sm" type="button" data-eq-dellog="${escapeAttr(l.id)}">Delete</button>
+              </div>
+            </div>
+          </div>
+        `).join("") : `<div class="sub" style="margin-top:10px">No log entries yet.</div>`}
+      </div>
+
+      <div class="row" style="justify-content:flex-end; gap:10px; margin-top:16px">
+        <button class="btn ghost" id="cancelModalBtn" type="button">Close</button>
+        <button class="btn" type="button" data-eq-edit="${escapeAttr(eqId)}">Edit</button>
+      </div>
+    </div>
+  </div>`;
+}
+function equipmentLogModal(equipmentId, logId){
+  const existing = logId ? aliveArr(state.equipmentLogs).find(x=>String(x.id)===String(logId)) : null;
+  const l = existing ? {...existing} : { id: uid(), equipmentId, date: new Date().toISOString().slice(0,10), kind:"Service", cost:"", notes:"" };
+  return `
+  <div class="modal">
+    <div class="modalCard">
+      <div class="row space" style="align-items:center">
+        <div>
+          <div class="h2">${existing?"Edit log":"Add log"}</div>
+          <div class="sub">Record servicing, repairs, WOF/reg actions.</div>
+        </div>
+        <button class="iconBtn" id="closeModalBtn" type="button">✕</button>
+      </div>
+
+      <div class="grid3" style="margin-top:14px">
+        <div>
+          <label class="label">Date</label>
+          <input class="input" id="eqLogDate" type="date" value="${escapeAttr(String(l.date).slice(0,10))}" />
+        </div>
+        <div>
+          <label class="label">Type</label>
+          <select class="input" id="eqLogKind">
+            ${["Service","Repair","WOF","Registration","Tyres","Other"].map(k=>`<option value="${k}" ${l.kind===k?"selected":""}>${k}</option>`).join("")}
+          </select>
+        </div>
+        <div>
+          <label class="label">Cost (optional)</label>
+          <input class="input" id="eqLogCost" value="${escapeAttr(l.cost||"")}" placeholder="e.g. 320" />
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label class="label">Notes</label>
+        <textarea class="input" id="eqLogNotes" rows="4" placeholder="What was done, where, who…">${escapeHtml(l.notes||"")}</textarea>
+      </div>
+
+      <div class="row" style="justify-content:flex-end; gap:10px; margin-top:16px">
+        <button class="btn ghost" id="cancelModalBtn" type="button">Cancel</button>
+        <button class="btn" id="saveEqLogBtn" type="button">${existing?"Save":"Add"}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+
+
+function bindEquipmentEvents(){
+  state.ui = state.ui || {};
+  const q = document.getElementById("equipmentSearch");
+  const st = document.getElementById("equipmentStatus");
+  const add = document.getElementById("btnAddEquipment");
+  if(q){
+    q.oninput = ()=>{ state.ui.equipmentQuery = q.value; saveState(state); document.getElementById("main").innerHTML = renderEquipment(); bindEquipmentEvents(); };
+  }
+  if(st){
+    st.onchange = ()=>{ state.ui.equipmentStatus = st.value; saveState(state); document.getElementById("main").innerHTML = renderEquipment(); bindEquipmentEvents(); };
+  }
+  if(add){
+    add.onclick = ()=>{ openModal(equipmentFormModal(null)); bindEquipmentModal(null); };
+  }
+}
+function bindEquipmentModal(eqId){
+  const existing = eqId ? equipmentById(eqId) : null;
+  const saveBtn = document.getElementById("saveEqBtn");
+  if(saveBtn){
+    saveBtn.onclick = ()=>{
+      const e = existing ? {...existing} : { id: uid(), status:"active" };
+      e.name = (document.getElementById("eqName").value||"").trim();
+      e.type = (document.getElementById("eqType").value||"").trim();
+      e.assetTag = (document.getElementById("eqAsset").value||"").trim();
+      e.status = document.getElementById("eqStatus").value;
+      e.projectId = document.getElementById("eqProject").value || "";
+      e.locationText = (document.getElementById("eqLocText").value||"").trim();
+      e.nextServiceDate = document.getElementById("eqServiceDue").value || "";
+      e.wofExpiry = document.getElementById("eqWof").value || "";
+      e.regExpiry = document.getElementById("eqReg").value || "";
+      e.notes = (document.getElementById("eqNotes").value||"").trim();
+      if(!e.name){
+        alert("Please enter a name.");
+        return;
+      }
+      upsertEquipment(e);
+      closeModal();
+      // re-render equipment tab if visible
+      try{
+        const r = parseRoute();
+        if(r.path==="equipment"){
+          document.getElementById("main").innerHTML = renderEquipment();
+          bindEquipmentEvents();
+        }
+      }catch(err){}
+    };
+  }
+}
+

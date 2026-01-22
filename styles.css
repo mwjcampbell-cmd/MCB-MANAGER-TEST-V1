@@ -682,3 +682,6 @@ main, .content, #app{
 .gRow{grid-template-columns: 2fr 1.2fr 1fr .5fr .6fr}
 .gAct{display:flex;justify-content:flex-end}
 .btn.sm{padding:8px 10px;font-size:.85rem}
+
+.grid3{display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:12px}
+@media(max-width:800px){.grid3{grid-template-columns:1fr}}
