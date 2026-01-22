@@ -303,7 +303,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
+// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -396,7 +396,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
+// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -427,17 +427,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
-// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
-// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
-// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
-// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
-// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
-// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
-// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
-// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
-// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
-// BUILD V9_TASK_DIARY_DELEGATE 20260122215412
+// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
+// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
+// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
+// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
+// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
+// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
+// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
+// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
+// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
+// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
+// BUILD V10_TASK_DIARY_DELEGATED_CLICK 20260122215928
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -3048,20 +3048,22 @@ function renderTasks(app, params){
     navTo("tasks", v ? {projectId:v} : {});
   };
 
-  $$("#taskList [data-action='open']").forEach(row=>row.onclick = ()=>{
+  $("#taskList").onclick = (ev)=>{
+    const row = ev.target.closest("[data-action='open']");
+    if(!row) return;
     const id = String(row.dataset.id || "");
     state.uiSelections.tasks.selectedId = id;
     saveState(state);
-    // update detail pane without navigating away
+    // highlight
+    $$("#taskList .fwListItem").forEach(x=>x.classList.remove("active"));
+    row.classList.add("active");
     const t = aliveArr(state.tasks).find(x=>String(x.id)===id);
     const body = document.getElementById("taskDetailBody");
     if(body){
       body.innerHTML = t ? renderTaskDetailPane(t) : `<div class="sub">Task not found.</div>`;
       if(t) bindTaskDetailPane(t, projectId);
-    } else {
-      requestRender();
     }
-  });
+  };
 
   if(selectedTask){
     bindTaskDetailPane(selectedTask, projectId);
@@ -3080,7 +3082,7 @@ function taskRowWithProject(t){
   ].filter(Boolean).join(" • ");
   const badge = `<span class="fwBadge ${statusBadgeClass(status)}">${escapeHtml(status)}</span>`;
   return `
-    <div class="fwListItem" data-action="open" data-id="${t.id}">
+    <div class="fwListItem${(state.uiSelections&&state.uiSelections.tasks&&String(state.uiSelections.tasks.selectedId)===String(t.id))?" active":""}" data-action="open" data-id="${t.id}">
       <div class="fwMain">
         <div class="fwTitleRow">
           <div class="fwTitle">${escapeHtml(t.title || "(Untitled task)")}</div>
@@ -3351,19 +3353,21 @@ function renderDiary(app, params){
     navTo("diary", v ? {projectId:v} : {});
   };
 
-  $$("#diaryList [data-action='open']").forEach(row=>row.onclick = ()=>{
+  $("#diaryList").onclick = (ev)=>{
+    const row = ev.target.closest("[data-action='open']");
+    if(!row) return;
     const id = String(row.dataset.id || "");
     state.uiSelections.diary.selectedId = id;
     saveState(state);
+    $$("#diaryList .fwListItem").forEach(x=>x.classList.remove("active"));
+    row.classList.add("active");
     const d = aliveArr(state.diary).find(x=>String(x.id)===id);
     const body = document.getElementById("diaryDetailBody");
     if(body){
       body.innerHTML = d ? renderDiaryDetailPane(d) : `<div class="sub">Entry not found.</div>`;
       if(d) bindDiaryDetailPane(d);
-    } else {
-      requestRender();
     }
-  });
+  };
 
   if(selectedEntry){
     bindDiaryDetailPane(selectedEntry);
