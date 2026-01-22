@@ -1,4 +1,4 @@
-const CACHE="mcb-cache-precon-gate-20260122063428";
+const CACHE="mcb-cache-12c1-20260122071138";
 const ASSETS = [
   "./",
   "./index.html",

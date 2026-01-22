@@ -264,7 +264,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
+// BUILD 12C1_PROGRAMME_READONLY 20260122071138
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -357,7 +357,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
+// BUILD 12C1_PROGRAMME_READONLY 20260122071138
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -383,17 +383,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
-// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
-// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
-// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
-// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
-// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
-// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
-// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
-// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
-// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
-// BUILD PRECON_GATE_LOCK_BADGES 20260122063428
+// BUILD 12C1_PROGRAMME_READONLY 20260122071138
+// BUILD 12C1_PROGRAMME_READONLY 20260122071138
+// BUILD 12C1_PROGRAMME_READONLY 20260122071138
+// BUILD 12C1_PROGRAMME_READONLY 20260122071138
+// BUILD 12C1_PROGRAMME_READONLY 20260122071138
+// BUILD 12C1_PROGRAMME_READONLY 20260122071138
+// BUILD 12C1_PROGRAMME_READONLY 20260122071138
+// BUILD 12C1_PROGRAMME_READONLY 20260122071138
+// BUILD 12C1_PROGRAMME_READONLY 20260122071138
+// BUILD 12C1_PROGRAMME_READONLY 20260122071138
+// BUILD 12C1_PROGRAMME_READONLY 20260122071138
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -473,8 +473,315 @@ const defaults = () => ({
   subbies: [],
   deliveries: [],
   leads: [],
-  inspections: []
+  inspections: [],
+  programmeTasks: [],
+  programmeHistoryStats: []
 });
+
+
+// ===== Programme Engine (Phase 12C.1) =====
+const PROGRAMME_TEMPLATES = {
+  standard_nz: {
+    name: "Standard NZ Residential (Generic)",
+    tasks: [
+      // Pre-start
+      { key:"prestart_admin", name:"Pre-start admin & setup", phase:"Pre-start", trade:"PM", baseDays:2, deps:[] },
+      { key:"site_establish", name:"Site establishment (welfare, fencing, temp power)", phase:"Pre-start", trade:"Builder", baseDays:2, deps:["prestart_admin"] },
+
+      // Foundations
+      { key:"setout", name:"Set-out", phase:"Foundations", trade:"Survey/Builder", baseDays:1, deps:["site_establish"] },
+      { key:"earthworks", name:"Earthworks / excavation", phase:"Foundations", trade:"Earthworks", baseDays:2, deps:["setout"] },
+      { key:"footings_prep", name:"Footings/boxing/rebar prep", phase:"Foundations", trade:"Builder", baseDays:2, deps:["earthworks"] },
+      { key:"foundations_pour", name:"Concrete pour", phase:"Foundations", trade:"Concrete", baseDays:1, deps:["footings_prep"] },
+      { key:"foundations_cure", name:"Cure / wait time buffer", phase:"Foundations", trade:"", baseDays:3, deps:["foundations_pour"], bufferDays:2, weatherSensitive:true },
+      { key:"foundation_insp", name:"Foundation inspection (milestone)", phase:"Foundations", trade:"Council", baseDays:0, deps:["foundations_cure"], isMilestone:true, milestoneType:"inspection" },
+
+      // Framing
+      { key:"floor_framing", name:"Floor framing", phase:"Framing", trade:"Builder", baseDays:2, deps:["foundation_insp"] },
+      { key:"wall_framing", name:"Wall framing", phase:"Framing", trade:"Builder", baseDays:4, deps:["floor_framing"] },
+      { key:"roof_framing", name:"Roof framing", phase:"Framing", trade:"Builder", baseDays:3, deps:["wall_framing"] },
+      { key:"bracing_tiedown", name:"Bracing & tie-downs", phase:"Framing", trade:"Builder", baseDays:2, deps:["roof_framing"] },
+      { key:"framing_insp", name:"Framing inspection (milestone)", phase:"Framing", trade:"Council", baseDays:0, deps:["bracing_tiedown"], isMilestone:true, milestoneType:"inspection" },
+
+      // Envelope
+      { key:"roof_on", name:"Roof on", phase:"Envelope", trade:"Roofer", baseDays:3, deps:["framing_insp"] },
+      { key:"wrap_cavity", name:"Building wrap & cavity battens", phase:"Envelope", trade:"Builder", baseDays:2, deps:["roof_on"] },
+      { key:"windows_doors", name:"Windows & exterior doors", phase:"Envelope", trade:"Joiner", baseDays:2, deps:["wrap_cavity"] },
+      { key:"cladding", name:"Cladding install", phase:"Envelope", trade:"Cladder", baseDays:8, deps:["windows_doors"] },
+      { key:"weathertight", name:"Weathertightness checkpoint", phase:"Envelope", trade:"PM", baseDays:0, deps:["cladding"], isMilestone:true, milestoneType:"milestone" },
+
+      // Rough-in services
+      { key:"plumb_rough", name:"Plumbing rough-in", phase:"Services", trade:"Plumber", baseDays:2, deps:["weathertight"] },
+      { key:"elec_rough", name:"Electrical rough-in", phase:"Services", trade:"Sparky", baseDays:2, deps:["weathertight"] },
+      { key:"hvac_rough", name:"HVAC / ventilation rough-in (if applicable)", phase:"Services", trade:"HVAC", baseDays:1, deps:["weathertight"] },
+      { key:"preline_insp", name:"Pre-line inspection (milestone)", phase:"Services", trade:"Council", baseDays:0, deps:["plumb_rough","elec_rough","hvac_rough"], isMilestone:true, milestoneType:"inspection" },
+
+      // Close-in
+      { key:"insulation", name:"Insulation", phase:"Close-in", trade:"Insulation", baseDays:1, deps:["preline_insp"] },
+      { key:"linings", name:"Gib/linings", phase:"Close-in", trade:"Liner", baseDays:4, deps:["insulation"] },
+      { key:"stopping", name:"Stopping", phase:"Close-in", trade:"Stopper", baseDays:4, deps:["linings"] },
+      { key:"waterproofing", name:"Waterproofing (wet areas)", phase:"Close-in", trade:"Waterproofer", baseDays:1, deps:["stopping"], bufferDays:1 },
+      { key:"paint_first", name:"First coat paint", phase:"Close-in", trade:"Painter", baseDays:2, deps:["waterproofing"] },
+
+      // Fit-off
+      { key:"joinery_install", name:"Joinery install", phase:"Fit-off", trade:"Joiner", baseDays:2, deps:["paint_first"] },
+      { key:"flooring", name:"Flooring", phase:"Fit-off", trade:"Flooring", baseDays:2, deps:["paint_first"] },
+      { key:"plumb_fittoff", name:"Plumbing fit-off", phase:"Fit-off", trade:"Plumber", baseDays:2, deps:["joinery_install","flooring"] },
+      { key:"elec_fittoff", name:"Electrical fit-off", phase:"Fit-off", trade:"Sparky", baseDays:2, deps:["joinery_install","flooring"] },
+      { key:"paint_finish", name:"Final paint", phase:"Fit-off", trade:"Painter", baseDays:3, deps:["plumb_fittoff","elec_fittoff"] },
+
+      // Completion
+      { key:"final_insp", name:"Final inspection (milestone)", phase:"Completion", trade:"Council", baseDays:0, deps:["paint_finish"], isMilestone:true, milestoneType:"inspection" },
+      { key:"snag_defects", name:"Defects / snagging", phase:"Completion", trade:"Builder", baseDays:2, deps:["final_insp"] },
+      { key:"final_clean", name:"Final clean", phase:"Completion", trade:"Cleaner", baseDays:1, deps:["snag_defects"] },
+      { key:"ccc_docs", name:"CCC documentation pack", phase:"Completion", trade:"PM", baseDays:2, deps:["final_clean"] },
+      { key:"handover", name:"Handover", phase:"Completion", trade:"PM", baseDays:0, deps:["ccc_docs"], isMilestone:true, milestoneType:"milestone" }
+    ]
+  },
+
+  new_build: { name:"New Build", inherits:"standard_nz", modifiers:{ baseMultiplier:1.15 } },
+  renovation: { name:"Renovation / Alteration", inherits:"standard_nz", modifiers:{ baseMultiplier:0.7, occupiedBufferDays:3 } },
+  extension: { name:"Extension / Addition", inherits:"standard_nz", modifiers:{ baseMultiplier:0.9 } },
+  bathroom: { name:"Bathroom / Wet Area", inherits:"standard_nz", modifiers:{ baseMultiplier:0.35 } },
+  deck: { name:"Deck / External", inherits:"standard_nz", modifiers:{ baseMultiplier:0.25 } },
+  re_roof: { name:"Re-roof / Roofing", inherits:"standard_nz", modifiers:{ baseMultiplier:0.2 } }
+};
+
+
+function saveProject(p){
+  // upsert into state.projects
+  if(!p || !p.id) return;
+  const list = alive(state.projects).filter(isAlive);
+  const idx = list.findIndex(x=>String(x.id)===String(p.id));
+  if(idx>=0) list[idx]=p; else list.unshift(p);
+  state.projects = list;
+  saveState(state);
+}
+
+function programmeTemplateResolve(key){
+  const t = PROGRAMME_TEMPLATES[key] || PROGRAMME_TEMPLATES.standard_nz;
+  if(t.tasks) return t;
+  const base = programmeTemplateResolve(t.inherits || "standard_nz");
+  const merged = { ...base, ...t, tasks: base.tasks.slice() };
+  return merged;
+}
+
+function programmeTasksForProject(projectId){
+  return aliveArr(state.programmeTasks).filter(x=>String(x.projectId)===String(projectId) && isAlive(x));
+}
+
+function parseISODate(s){
+  try{ if(!s) return null; const d=new Date(s); return isNaN(d)?null:d; }catch(e){ return null; }
+}
+function fmtISO(d){
+  const dd = (d instanceof Date)? d : new Date(d);
+  if(isNaN(dd)) return "";
+  const y=dd.getFullYear(); const m=String(dd.getMonth()+1).padStart(2,"0"); const da=String(dd.getDate()).padStart(2,"0");
+  return `${y}-${m}-${da}`;
+}
+function addDays(d, days){
+  const x=new Date(d); x.setDate(x.getDate() + (days||0)); return x;
+}
+
+function topoSortTasks(tasks){
+  const map = new Map(tasks.map(t=>[t.key, t]));
+  const indeg = new Map(tasks.map(t=>[t.key, 0]));
+  tasks.forEach(t=>{
+    (t.deps||[]).forEach(dep=>{
+      if(indeg.has(t.key) && map.has(dep)) indeg.set(t.key, indeg.get(t.key)+1);
+    });
+  });
+  const q = [];
+  indeg.forEach((v,k)=>{ if(v===0) q.push(k); });
+  const out=[];
+  while(q.length){
+    const k=q.shift();
+    out.push(map.get(k));
+    tasks.forEach(t=>{
+      if((t.deps||[]).includes(k) && indeg.has(t.key)){
+        indeg.set(t.key, indeg.get(t.key)-1);
+        if(indeg.get(t.key)===0) q.push(t.key);
+      }
+    });
+  }
+  // if cycles, append remaining
+  const seen=new Set(out.map(t=>t.key));
+  tasks.forEach(t=>{ if(!seen.has(t.key)) out.push(t); });
+  return out;
+}
+
+function computeSchedule(tasks, startDate){
+  const map = new Map(tasks.map(t=>[t.key, t]));
+  const starts = new Map();
+  const ends = new Map();
+  const ordered = topoSortTasks(tasks);
+  ordered.forEach(t=>{
+    const deps = (t.deps||[]).filter(k=>map.has(k));
+    let s = new Date(startDate);
+    if(deps.length){
+      const maxEnd = deps.map(k=>ends.get(k)).filter(Boolean).sort((a,b)=>b-a)[0];
+      if(maxEnd) s = new Date(maxEnd);
+    }
+    const dur = Math.max(0, Number(t.plannedDays ?? t.baseDays ?? 0));
+    const buff = Math.max(0, Number(t.bufferDays ?? 0));
+    const e = addDays(s, dur + buff);
+    starts.set(t.key, s);
+    ends.set(t.key, e);
+    t.plannedStart = fmtISO(s);
+    t.plannedEnd = fmtISO(e);
+    t.totalDays = dur + buff;
+  });
+  return { starts, ends };
+}
+
+function computeCriticalPath(tasks){
+  const map = new Map(tasks.map(t=>[t.key, t]));
+  const ordered = topoSortTasks(tasks);
+  const dist = new Map(); // longest duration to end of task
+  const prev = new Map();
+  ordered.forEach(t=>{
+    const deps=(t.deps||[]).filter(k=>map.has(k));
+    let best=0, bestDep=null;
+    deps.forEach(dk=>{
+      const v=dist.get(dk)||0;
+      if(v>best){ best=v; bestDep=dk; }
+    });
+    const w = Math.max(0, Number(t.totalDays ?? t.plannedDays ?? t.baseDays ?? 0));
+    dist.set(t.key, best + w);
+    prev.set(t.key, bestDep);
+  });
+  // find end task with max dist
+  let endKey=null, best=0;
+  dist.forEach((v,k)=>{ if(v>=best){ best=v; endKey=k; }});
+  const cp=new Set();
+  let cur=endKey;
+  while(cur){
+    cp.add(cur);
+    cur = prev.get(cur);
+  }
+  tasks.forEach(t=> t.isCritical = cp.has(t.key));
+  return cp;
+}
+
+function generateProgrammeForProject(p, opts={}){
+  const key = opts.templateKey || p.programmeTemplateKey || "standard_nz";
+  const tpl = programmeTemplateResolve(key);
+  const complexity = opts.complexity || p.programmeComplexity || "Moderate";
+  const mult = (complexity==="Simple")?1.0:(complexity==="Complex")?1.4:1.2;
+  const baseMult = (tpl.modifiers && tpl.modifiers.baseMultiplier) ? tpl.modifiers.baseMultiplier : 1.0;
+  const start = parseISODate(p.programmeStartDate) || parseISODate(p.startDate) || new Date();
+  const tasks = tpl.tasks.map(t=>({
+    id: uid(),
+    projectId: p.id,
+    key: t.key,
+    name: t.name,
+    phase: t.phase,
+    trade: t.trade,
+    deps: (t.deps||[]).slice(),
+    baseDays: Number(t.baseDays||0),
+    bufferDays: Number(t.bufferDays||0),
+    weatherSensitive: !!t.weatherSensitive,
+    isMilestone: !!t.isMilestone,
+    milestoneType: t.milestoneType || "",
+    plannedDays: Math.round(Number(t.baseDays||0) * mult * baseMult),
+    status: "Planned",
+    notes: "",
+    deletedAt: null
+  }));
+  // recompute schedule + critical path
+  computeSchedule(tasks, start);
+  computeCriticalPath(tasks);
+  p.programmeTemplateKey = key;
+  p.programmeComplexity = complexity;
+  if(!p.programmeStartDate) p.programmeStartDate = fmtISO(start);
+  saveProject(p);
+  // replace existing tasks for this project (soft delete old)
+  state.programmeTasks = aliveArr(state.programmeTasks).filter(x=>String(x.projectId)!==String(p.id));
+  state.programmeTasks = [...aliveArr(state.programmeTasks), ...tasks];
+  saveState(state);
+  return tasks;
+}
+
+function projectProgramme(p){
+  const current = programmeTasksForProject(p.id);
+  const key = p.programmeTemplateKey || "standard_nz";
+  const complexity = p.programmeComplexity || "Moderate";
+  const start = p.programmeStartDate || fmtISO(new Date());
+  const finish = current.length ? current.map(t=>t.plannedEnd).filter(Boolean).sort().slice(-1)[0] : "";
+  const totalDays = current.length ? current.reduce((a,t)=>a+(Number(t.totalDays||0)),0) : 0;
+
+  return `
+    <div class="card">
+      <div class="row space noPrint" style="gap:10px; flex-wrap:wrap">
+        <div class="row" style="gap:10px; flex-wrap:wrap">
+          <label class="sub">Template</label>
+          <select class="input" id="progTpl" style="min-width:220px">
+            <option value="standard_nz">Standard NZ Residential</option>
+            <option value="new_build">New Build</option>
+            <option value="renovation">Renovation / Alteration</option>
+            <option value="extension">Extension / Addition</option>
+            <option value="bathroom">Bathroom / Wet Area</option>
+            <option value="deck">Deck / External</option>
+            <option value="re_roof">Re-roof / Roofing</option>
+          </select>
+        </div>
+        <div class="row" style="gap:10px; flex-wrap:wrap">
+          <label class="sub">Complexity</label>
+          <select class="input" id="progCx" style="min-width:160px">
+            <option>Simple</option>
+            <option>Moderate</option>
+            <option>Complex</option>
+          </select>
+        </div>
+        <div class="row" style="gap:10px; flex-wrap:wrap">
+          <label class="sub">Start</label>
+          <input class="input" id="progStart" type="date" value="${escapeAttr(start)}" />
+        </div>
+        <button class="btn primary" id="progGen" type="button">${current.length? "Regenerate":"Generate"} programme</button>
+      </div>
+      <div class="row space" style="margin-top:10px">
+        <div class="sub">Projected finish: <b>${escapeHtml(finish || "—")}</b></div>
+        <div class="sub">Total planned days (incl buffers): <b>${totalDays || 0}</b></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      ${current.length ? programmeGantt(current) : `<div class="sub">No programme yet. Use <b>Generate programme</b>.</div>`}
+    </div>
+  `;
+}
+
+function programmeGantt(tasks){
+  const phases = {};
+  tasks.forEach(t=>{ (phases[t.phase] = phases[t.phase] || []).push(t); });
+  const phaseKeys = Object.keys(phases);
+  const rows = phaseKeys.map(ph=>{
+    const list = phases[ph].sort((a,b)=>(a.plannedStart||"").localeCompare(b.plannedStart||""));
+    const inner = list.map(t=>{
+      const crit = t.isCritical ? "badge danger" : "badge";
+      const dur = Number(t.totalDays||0);
+      const barW = Math.min(100, Math.max(3, dur*6)); // visual only
+      return `
+        <div class="gRow">
+          <div class="gName">
+            <div class="row" style="gap:8px; flex-wrap:wrap">
+              <span class="${crit}">${t.isCritical?"Critical":"Task"}</span>
+              ${t.isMilestone? `<span class="badge">Milestone</span>`:""}
+              <b>${escapeHtml(t.name)}</b>
+            </div>
+            <div class="sub">${escapeHtml(t.trade || "")}</div>
+          </div>
+          <div class="gDates sub">${escapeHtml(t.plannedStart||"")} → ${escapeHtml(t.plannedEnd||"")}</div>
+          <div class="gBar"><div class="bar" style="width:${barW}%"></div></div>
+          <div class="gDur sub">${dur}d</div>
+        </div>
+      `;
+    }).join("");
+    return `<div class="gPhase"><div class="h3">${escapeHtml(ph)}</div>${inner}</div>`;
+  }).join("");
+
+  return `<div class="gantt">${rows}</div>`;
+}
 
 const defaultSettings = () => ({
   theme: "dark",
@@ -1806,6 +2113,7 @@ function renderProjectDetail(app, params){
     ["map","Live Map"],
     ["tasks","Tasks"],
     ["diary","Diary"],
+    ["programme","Programme"],
     ["variations","Variations"],
     ["subbies","Subbies"],
     ["deliveries","Deliveries"],
@@ -1840,6 +2148,7 @@ function renderProjectDetail(app, params){
   if(tab==="map") wrap.innerHTML = projectMap(p);
   if(tab==="tasks") wrap.innerHTML = projectTasks(p);
   if(tab==="diary") wrap.innerHTML = projectDiary(p);
+  if(tab==="programme") wrap.innerHTML = projectProgramme(p);
   if(tab==="variations") wrap.innerHTML = projectVariations(p);
   if(tab==="subbies") wrap.innerHTML = projectSubbies(p);
   if(tab==="deliveries") wrap.innerHTML = projectDeliveries(p);
@@ -1952,7 +2261,20 @@ render(); try{renderDeletedProjectsUI();}catch(e){}
       }
     });
   }
-  if(tab==="variations"){
+  
+  if(tab==="programme"){
+    $("#progTpl") && ($("#progTpl").value = (p.programmeTemplateKey || "standard_nz"));
+    $("#progCx") && ($("#progCx").value = (p.programmeComplexity || "Moderate"));
+    $("#progGen") && ($("#progGen").onclick = ()=>{
+      const tpl = $("#progTpl").value;
+      const cx = $("#progCx").value;
+      const sd = $("#progStart").value;
+      p.programmeStartDate = sd || p.programmeStartDate || fmtISO(new Date());
+      generateProgrammeForProject(p, { templateKey: tpl, complexity: cx });
+      render(); try{renderDeletedProjectsUI();}catch(e){}
+    });
+  }
+if(tab==="variations"){
     $("#addVarProj").onclick = ()=> openVariationForm({ projectId:p.id });
     $$("#varListProj [data-action='edit']").forEach(b=>b.onclick = ()=> openVariationForm(state.variations.find(v=>String(v.id)===String(b.dataset.id))));
     $$("#varListProj [data-action='delete']").forEach(b=>b.onclick = ()=>{
