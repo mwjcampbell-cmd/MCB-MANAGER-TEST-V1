@@ -1,6 +1,6 @@
 
 
-const BUILD_ID = "mcb-build-20260122092103";
+const BUILD_ID = "mcb-build-20260122223209";
 
 try{
   const prev = localStorage.getItem("mcb_build_id") || "";
@@ -303,7 +303,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
+// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -396,7 +396,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
+// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -427,17 +427,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
-// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
-// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
-// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
-// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
-// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
-// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
-// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
-// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
-// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
-// BUILD V13_TASK_DIARY_DETAILS_FIX 20260122222013
+// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
+// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
+// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
+// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
+// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
+// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
+// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
+// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
+// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
+// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
+// BUILD V14_TASK_DIARY_STATEAPP_FIX 20260122223047
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -2995,7 +2995,7 @@ function projectReports(p){
 function renderTasks(app, params){
   setHeader("Tasks");
   const projectId = params.projectId || "";
-  const selectedId = params.id || (state.uiSelections?.tasks?.selectedId || "");
+  const selectedId = params.id || "";
   const projects = aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   const tasks = aliveArr(state.tasks)
     .filter(t=> !projectId || t.projectId===projectId)
@@ -3006,7 +3006,7 @@ function renderTasks(app, params){
     const tsel = aliveArr(state.tasks).find(t=>String(t.id)===String(selectedId));
     if(tsel){
       state.uiSelections.tasks = state.uiSelections.tasks || {};
-      state.app.innerHTML = renderTaskDetail(tsel);
+      updateTaskDetailPanel(tsel, projectId);
       bindTaskDetail(tsel, projectId);
       return;
     } else {
@@ -3290,7 +3290,7 @@ function openDiaryView(d){
 function renderDiary(app, params){
   setHeader("Diary");
   const projectId = params.projectId || "";
-  const selectedId = params.id || (state.uiSelections?.tasks?.selectedId || "");
+  const selectedId = params.id || "";
   const projects = aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   const entries = aliveArr(state.diary)
     .filter(d=> !projectId || d.projectId===projectId)
@@ -3301,7 +3301,7 @@ function renderDiary(app, params){
     const dsel = aliveArr(state.diary).find(d=>String(d.id)===String(selectedId));
     if(dsel){
       state.uiSelections.diary = state.uiSelections.diary || {};
-      state.app.innerHTML = renderDiaryDetail(dsel);
+      updateDiaryDetailPanel(dsel, projectId);
       bindDiaryDetail(dsel, projectId);
       return;
     } else {
@@ -6361,3 +6361,18 @@ document.addEventListener("click",(ev)=>{
   @keyframes flashKeyframesV12 { from { transform: translateY(2px); opacity:.85; } to { transform: translateY(0); opacity:1; } }`;
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 })();
+
+function updateTaskDetailPanel(t, projectId){
+  const body = document.getElementById("taskDetailBody");
+  if(!body) return;
+  body.innerHTML = (typeof renderTaskDetailPane==="function") ? renderTaskDetailPane(t) : "";
+  try{ if(typeof bindTaskDetailPane==="function") bindTaskDetailPane(t, projectId); }catch(e){}
+  try{ body.classList.remove("flash"); void body.offsetWidth; body.classList.add("flash"); }catch(e){}
+}
+function updateDiaryDetailPanel(d, projectId){
+  const body = document.getElementById("diaryDetailBody");
+  if(!body) return;
+  body.innerHTML = (typeof renderDiaryDetailPane==="function") ? renderDiaryDetailPane(d) : "";
+  try{ if(typeof bindDiaryDetailPane==="function") bindDiaryDetailPane(d, projectId); }catch(e){}
+  try{ body.classList.remove("flash"); void body.offsetWidth; body.classList.add("flash"); }catch(e){}
+}
