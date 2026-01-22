@@ -1,5 +1,16 @@
 
 
+const BUILD_ID = "mcb-build-20260122092103";
+
+try{
+  const prev = localStorage.getItem("mcb_build_id") || "";
+  if(prev !== BUILD_ID){
+    localStorage.setItem("mcb_build_id", BUILD_ID);
+    localStorage.setItem("mcb_app_last_update", new Date().toISOString());
+  }
+}catch(e){}
+
+
 function isProgrammeTaskRemoved(t){
   return !!(t && (t.removed === true || t.disabled === true || t.deletedAt || t.removedAt));
 }
@@ -282,7 +293,7 @@ function patchProject(projectId, patch){
 
 
 // ===== AUTO UPDATE (Option 1) =====
-// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
+// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
 function showUpdateBanner(onReload){
   // Small non-intrusive banner at top of page
   let el = document.getElementById("updateBanner");
@@ -375,7 +386,7 @@ async function checkForUpdate(){
   } catch(e){ console.warn('SW update failed', e); }
 }
 
-// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
+// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
 
 // Minimal toast (used by clipboard + sync messages). Safe fallback on iOS/Safari.
 function toast(msg, ms=2200){
@@ -401,17 +412,17 @@ function toast(msg, ms=2200){
     alert(String(msg ?? ""));
   }
 }
-// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
-// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
-// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
-// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
-// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
-// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
-// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
-// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
-// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
-// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
-// BUILD 12C1_PROGRAMME_REMOVABLE_V5 20260122090447
+// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
+// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
+// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
+// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
+// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
+// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
+// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
+// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
+// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
+// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
+// BUILD 12C1_PROGRAMME_REMOVABLE_V6 20260122092103
 // PHASE 2 BUILD 20260119055027
 
 /* ===== LOGIN GATE ===== */
@@ -3944,6 +3955,8 @@ const total = Object.values(lines).reduce((s,v)=> s + (v.amount||0), 0);
 // ----------------- Settings -----------------
 function renderSettings(app){
   setHeader("Settings");
+  updateAppUpdateStamp();
+
   app.innerHTML = `
       <div class="card" style="margin-top:12px">
         <div class="row space">
@@ -3961,6 +3974,7 @@ function renderSettings(app){
         <div class="smallmuted" style="margin-top:8px">
           Force refresh clears the PWA cache & service worker but keeps your local data (IndexedDB).
         </div>
+        <div class="sub" id="appUpdateStamp" style="margin-top:8px">Last app update: —</div>
       </div>
 
     <div class="grid two">
@@ -4893,11 +4907,8 @@ document.addEventListener("click", (ev)=>{
     }
     saveProgrammeTasksForProject(projectId, tasks);
     // refresh current view
-    if(window.currentProject && String(window.currentProject.id)===String(projectId)){
-      refreshProgrammeTab(projectId);
-    } else {
-      renderRemovedProgrammeTasks(projectId);
-    }
+    refreshProgrammeTab(projectId);
+    renderRemovedProgrammeTasks(projectId);
   }catch(e){
     console.warn(e);
     alert("Could not update programme task.");
@@ -4906,10 +4917,10 @@ document.addEventListener("click", (ev)=>{
 
 function refreshProgrammeTab(projectId){
   try{
-    const params = parseHashParams();
-    if(params.path!=="project") return;
-    if(String(params.id)!==String(projectId)) return;
-    if((params.tab||"overview")!=="programme") return;
+    const r = (typeof parseRoute==="function") ? parseRoute() : {path:"", params:{}};
+    if(r.path!=="project") return;
+    if(String((r.params||{}).id)!==String(projectId)) return;
+    if(String((r.params||{}).tab||"overview")!=="programme") return;
     const p = projectById(projectId);
     const wrap = document.getElementById("tabContent");
     if(!p || !wrap) return;
@@ -4919,19 +4930,22 @@ function refreshProgrammeTab(projectId){
   }catch(e){ console.warn(e); }
 }
 
-function parseHashParams(){
-  // very small hash router parser for refresh helpers
-  const h = (location.hash||"").replace(/^#\/?/, "");
-  const [path, qs] = h.split("?");
-  const params = { path: path || "" };
-  if(qs){
-    qs.split("&").forEach(kv=>{
-      const [k,v] = kv.split("=");
-      if(k) params[decodeURIComponent(k)] = decodeURIComponent(v||"");
-    });
-  }
-  // support #/project?id=...
-  return params;
-}
 
 try{ localStorage.setItem("mcb_last_update_applied","2026-01-22T09:06:55.786767"); }catch(e){}
+
+function updateAppUpdateStamp(){
+  try{
+    const el = document.getElementById("appUpdateStamp");
+    if(!el) return;
+    const iso = localStorage.getItem("mcb_app_last_update") || "";
+    el.textContent = "Last app update: " + (iso ? fmtNZDateTime(iso) : "—") + "  •  Build: " + BUILD_ID;
+  }catch(e){}
+}
+
+function fmtNZDateTime(iso){
+  try{
+    const d = new Date(iso);
+    const pad = (n)=> String(n).padStart(2,"0");
+    return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }catch(e){ return iso || "—"; }
+}
