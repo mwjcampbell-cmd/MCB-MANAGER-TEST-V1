@@ -2994,8 +2994,17 @@ function projectReports(p){
 }
 
 // ----------------- Tasks (global) -----------------
-function renderTasks(opts={}){
-  const app = $("app");
+// render() calls renderTasks(appEl, params). Some older builds called renderTasks(params).
+// Support both so Tasks doesn't go blank.
+function renderTasks(appElOrOpts={}, paramsMaybe={}){
+  let app = appElOrOpts;
+  let opts = paramsMaybe || {};
+  // Shift if first arg is actually the options object.
+  if(app && typeof app === 'object' && !('innerHTML' in app) && !('nodeType' in app)){
+    opts = app;
+    app = $("app");
+  }
+  if(!app) app = $("app");
   if(!app) return;
   const state = getState();
 
@@ -3270,8 +3279,16 @@ function openDiaryView(d){
   $("#closeM").onclick = closeModal;
   $("#editV").onclick = ()=> openDiaryForm(d);
 }
-function renderDiary(opts={}){
-  const app = $("app");
+// render() calls renderDiary(appEl, params). Some older builds called renderDiary(params).
+function renderDiary(appElOrOpts={}, paramsMaybe={}){
+  let app = appElOrOpts;
+  let opts = paramsMaybe;
+  // If first arg is actually the params object (no innerHTML), shift.
+  if(app && typeof app === 'object' && !('innerHTML' in app)){
+    opts = app;
+    app = $("app");
+  }
+  if(!app || !(app instanceof Element)) app = $("app");
   if(!app) return;
   const state = getState();
 
