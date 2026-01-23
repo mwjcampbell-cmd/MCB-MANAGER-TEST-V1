@@ -3029,7 +3029,6 @@ function renderTasks(app, params){
     }
   }catch(e){}
 
-}
 app.innerHTML = `
     <div class="card">
       <div class="row space">
@@ -3128,9 +3127,8 @@ function renderTaskDetail(t){
   `;
 }
 function bindTaskDetail(t, projectId){
-  const __back = $("#taskBack");
-  if(__back) __back.onclick = ()=>{
-    if(state.uiSelections && state.uiSelections.tasks) delete state.uiSelections.tasks.selectedId;
+  $("#taskBack").onclick = ()=>{
+    if(state.uiSelections?.tasks) delete state.uiSelections.tasks.selectedId;
     saveState(state);
     navTo("tasks", projectId ? {projectId} : {});
   };
@@ -3324,7 +3322,6 @@ function renderDiary(app, params){
     }
   }catch(e){}
 
-}
 app.innerHTML = `
     <div class="card">
       <div class="row space">
@@ -3420,9 +3417,11 @@ function renderDiaryDetail(d){
   `;
 }
 function bindDiaryDetail(d, projectId){
-  const __back = $("#diaryBack");
-  if(__back) __back.onclick = ()=>{
-    if(state.uiSelections && state.uiSelections.diary) delete state.uiSelections.diary.selectedId;
+  if(!document.getElementById("diaryEdit")) return;
+  if(!document.getElementById("diaryDelete")) return;
+  if(!document.getElementById("diaryBack")) return;
+  $("#diaryBack").onclick = ()=>{
+    if(state.uiSelections?.diary) delete state.uiSelections.diary.selectedId;
     saveState(state);
     navTo("diary", projectId ? {projectId} : {});
   };
@@ -6413,4 +6412,7 @@ function initNavMenu(){
     closeMenu();
     try{ navTo(route); }catch(err){}
   });
+}
+
+}
 }
