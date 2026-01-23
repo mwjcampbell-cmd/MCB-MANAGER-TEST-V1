@@ -2714,7 +2714,7 @@ function taskRow(t){
   const badgeClass = t.status==="Done" ? "ok" : (t.status==="In progress" ? "warn" : "");
   const subbie = t.assignedSubbieId ? subbieById(t.assignedSubbieId) : null;
   return `
-    <div class="item">
+    <div class="item" data-task-id="${escapeAttr(t.id)}">
       <div class="row space">
         <div>
           <div class="title">${escapeHtml(t.title)}</div>
@@ -2994,96 +2994,76 @@ function projectReports(p){
 }
 
 // ----------------- Tasks (global) -----------------
-function renderTasks(app, params){
-  setHeader("Tasks");
-  const projectId = params.projectId || "";
-  const selectedId = params.id || "";
-  const projects = aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
-  const tasks = aliveArr(state.tasks)
-    .filter(t=> !projectId || t.projectId===projectId)
-    .slice()
-    .sort((a,b)=>(b.updatedAt||"").localeCompare(a.updatedAt||""));
-  
-  if(selectedId){
-    const tsel = aliveArr(state.tasks).find(t=>String(t.id)===String(selectedId));
-    if(tsel){
-      state.uiSelections.tasks = state.uiSelections.tasks || {};
-      updateTaskDetailPanel(tsel, projectId);
-      bindTaskDetail(tsel, projectId);
-      return;
-    } else {
-      // stale selection
-      state.uiSelections.tasks = state.uiSelections.tasks || {};
-      delete state.uiSelections.tasks.selectedId;
-      saveState(state);
-    }
-  
-  // fill_taskDetailBody
-  try{
-    const sid = getSelected("tasks");
-    const body = document.getElementById("taskDetailBody");
-    if(body){
-      const item = sid ? aliveArr(state.tasks).find(x=>String(x.id)===String(sid)) : null;
-      body.innerHTML = renderTaskDetailPane(item);
-      if(item) bindTaskDetailPane(item);
-    }
-  }catch(e){}
+function renderTasks(opts={}){
+  const app = $("app");
+  if(!app) return;
+  const state = getState();
 
-}
-app.innerHTML = `
+  // If an ID is provided, render a dedicated detail page (reliable bindings).
+  if(opts && opts.id){
+    const t = (state.tasks || []).find(x=>String(x.id)===String(opts.id));
+    if(!t){
+      navTo("tasks", opts.projectId ? {projectId: opts.projectId} : {});
+      return;
+    }
+    app.innerHTML = renderTaskDetail(t);
+    bindTaskDetail(t, opts.projectId || t.projectId);
+    return;
+  }
+
+  const selectedProjectId = (opts && opts.projectId) ? String(opts.projectId) : "";
+  const projects = aliveArr(state.projects||[]);
+  const allTasks = aliveArr(state.tasks||[]).slice().sort((a,b)=>(b.dueDate||"").localeCompare(a.dueDate||""));
+  const tasks = selectedProjectId ? allTasks.filter(t=>String(t.projectId)===selectedProjectId) : allTasks;
+
+  app.innerHTML = `
     <div class="card">
       <div class="row space">
         <h2>Tasks</h2>
         <button class="btn primary" id="newTask" type="button">New Task</button>
       </div>
-      <div class="grid two">
-        <div>
-          <label>Filter by project</label>
-          <select id="taskProjectFilter" class="input">
-            <option value="">All projects</option>
-            ${projects.map(p=>`<option value="${p.id}" ${p.id===projectId?"selected":""}>${escapeHtml(p.name)}</option>`).join("")}
-          </select>
-        </div>
-        <div></div>
-      </div>
+      <div class="sub">Create and manage to-dos across jobs. Tap a task to view / edit.</div>
       <hr/>
-      <div class="list" id="taskList">${tasks.length ? tasks.map(taskRowWithProject).join("") : `<div class="sub">No tasks yet.</div>`}</div>
-    </div>
-  `;
-  $("#newTask").onclick = ()=> openTaskForm(projectId ? { projectId } : {});
-  $("#taskProjectFilter").onchange = (e)=>{
-    const v = e.target.value;
-    navTo("tasks", v ? {projectId:v} : {});
-  };
-
-  $$("#taskList [data-action='open']").forEach(row=>row.onclick = ()=>{
-    const id = row.dataset.id;
-    navTo("tasks", Object.assign({}, projectId ? {projectId} : {}, { id }));
-  });
-}
-function taskRowWithProject(t){
-  const p = projectById(t.projectId);
-  const status = t.status || "Open";
-  const due = t.dueDate ? dateFmt(t.dueDate) : "";
-  const assigned = t.assignedToName || (t.subbieId ? (subbieById(t.subbieId)?.name||"") : "");
-  const metaBits = [
-    p ? escapeHtml(p.name||p.address||"") : "No project",
-    due ? ("Due " + escapeHtml(due)) : "",
-    assigned ? ("Assigned " + escapeHtml(assigned)) : ""
-  ].filter(Boolean).join(" • ");
-  const badge = `<span class="fwBadge ${statusBadgeClass(status)}">${escapeHtml(status)}</span>`;
-  return `
-    <div class="fwListItem" data-action="open" data-id="${t.id}">
-      <div class="fwMain">
-        <div class="fwTitleRow">
-          <div class="fwTitle">${escapeHtml(t.title || "(Untitled task)")}</div>
-          ${badge}
-        </div>
-        <div class="fwMeta">${escapeHtml(metaBits || " ")}</div>
+      <div class="field">
+        <label>Filter by project</label>
+        <select id="taskProjectFilter">
+          <option value="">All projects</option>
+          ${projects.map(p=>`<option value="${escapeAttr(p.id)}"${String(p.id)===selectedProjectId?' selected':''}>${escapeHtml(p.name||p.title||'Untitled')}</option>`).join("")}
+        </select>
       </div>
-      <div class="fwChevron">›</div>
+      <div class="list" id="taskList">
+        ${tasks.length ? tasks.map(t=>taskRow(t, state)).join("") : `<div class="sub">No tasks yet. Tap <b>New Task</b> to add one.</div>`}
+      </div>
     </div>
   `;
+
+  const sel = $("#taskProjectFilter");
+  if(sel){
+    sel.onchange = ()=>{
+      navTo("tasks", sel.value ? {projectId: sel.value} : {});
+    };
+  }
+
+  const btn = $("#newTask");
+  if(btn){
+    btn.onclick = ()=> openTaskForm(null, selectedProjectId || "");
+  }
+
+  // Delegate row clicks to avoid missing bindings after rerender.
+  const listEl = $("#taskList");
+  if(listEl){
+    listEl.onclick = (e)=>{
+      const tEl = (e.target && e.target.closest) ? e.target.closest("[data-task-id]") : null;
+      if(!tEl) return;
+
+      // Ignore clicks on inner buttons (Edit/Delete/Drive) if present
+      if(e.target && e.target.closest && e.target.closest("button")) return;
+
+      const id = tEl.getAttribute("data-task-id");
+      if(!id) return;
+      navTo("tasks", Object.assign({}, selectedProjectId ? {projectId: selectedProjectId} : {}, {id}));
+    };
+  }
 }
 
 function renderTaskDetail(t){
@@ -3290,73 +3270,73 @@ function openDiaryView(d){
   $("#closeM").onclick = closeModal;
   $("#editV").onclick = ()=> openDiaryForm(d);
 }
-function renderDiary(app, params){
-  setHeader("Diary");
-  const projectId = params.projectId || "";
-  const selectedId = params.id || "";
-  const projects = aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
-  const entries = aliveArr(state.diary)
-    .filter(d=> !projectId || d.projectId===projectId)
-    .slice()
-    .sort((a,b)=>(b.date||"").localeCompare(a.date||""));
-  
-  if(selectedId){
-    const dsel = aliveArr(state.diary).find(d=>String(d.id)===String(selectedId));
-    if(dsel){
-      state.uiSelections.diary = state.uiSelections.diary || {};
-      updateDiaryDetailPanel(dsel, projectId);
-      bindDiaryDetail(dsel, projectId);
-      return;
-    } else {
-      state.uiSelections.diary = state.uiSelections.diary || {};
-      delete state.uiSelections.diary.selectedId;
-      saveState(state);
-    }
-  
-  // fill_diaryDetailBody
-  try{
-    const sid = getSelected("diary");
-    const body = document.getElementById("diaryDetailBody");
-    if(body){
-      const item = sid ? aliveArr(state.diary).find(x=>String(x.id)===String(sid)) : null;
-      body.innerHTML = renderDiaryDetailPane(item);
-      if(item) bindDiaryDetailPane(item);
-    }
-  }catch(e){}
+function renderDiary(opts={}){
+  const app = $("app");
+  if(!app) return;
+  const state = getState();
 
-}
-app.innerHTML = `
+  if(opts && opts.id){
+    const d = (state.diaryEntries||[]).find(x=>String(x.id)===String(opts.id));
+    if(!d){
+      navTo("diary", opts.projectId ? {projectId: opts.projectId} : {});
+      return;
+    }
+    app.innerHTML = renderDiaryDetail(d);
+    bindDiaryDetail(d, opts.projectId || d.projectId);
+    return;
+  }
+
+  const selectedProjectId = (opts && opts.projectId) ? String(opts.projectId) : "";
+  const projects = aliveArr(state.projects||[]);
+  const allDiary = aliveArr(state.diaryEntries||[]).slice().sort((a,b)=>(b.date||"").localeCompare(a.date||""));
+  const diary = selectedProjectId ? allDiary.filter(d=>String(d.projectId)===selectedProjectId) : allDiary;
+
+  app.innerHTML = `
     <div class="card">
       <div class="row space">
         <h2>Diary</h2>
         <button class="btn primary" id="newDiary" type="button">New Entry</button>
       </div>
-      <div class="grid two">
-        <div>
-          <label>Filter by project</label>
-          <select id="diaryProjectFilter" class="input">
-            <option value="">All projects</option>
-            ${projects.map(p=>`<option value="${p.id}" ${p.id===projectId?"selected":""}>${escapeHtml(p.name)}</option>`).join("")}
-          </select>
-        </div>
-        <div></div>
-      </div>
+      <div class="sub">Daily notes, hours and context. Tap an entry to view / edit.</div>
       <hr/>
-      <div class="list" id="diaryList">${entries.length ? entries.map(diaryRowWithProject).join("") : `<div class="sub">No diary entries yet.</div>`}</div>
+      <div class="field">
+        <label>Filter by project</label>
+        <select id="diaryProjectFilter">
+          <option value="">All projects</option>
+          ${projects.map(p=>`<option value="${escapeAttr(p.id)}"${String(p.id)===selectedProjectId?' selected':''}>${escapeHtml(p.name||p.title||'Untitled')}</option>`).join("")}
+        </select>
+      </div>
+      <div class="list" id="diaryList">
+        ${diary.length ? diary.map(d=>diaryRowWithProject(d, state)).join("") : `<div class="sub">No diary entries yet. Tap <b>New Entry</b> to add one.</div>`}
+      </div>
     </div>
   `;
-  $("#newDiary").onclick = ()=> openDiaryForm(projectId ? { projectId } : {});
-  $("#diaryProjectFilter").onchange = (e)=>{
-    const v = e.target.value;
-    navTo("diary", v ? {projectId:v} : {});
-  };
 
-  $$("#diaryList [data-action='open']").forEach(row=>row.onclick = ()=>{
-    const id = row.dataset.id;
-    navTo("diary", Object.assign({}, projectId ? {projectId} : {}, { id }));
-  });
-  // (Fieldwire UI refactor) Delete is handled by detail view actions.
+  const sel = $("#diaryProjectFilter");
+  if(sel){
+    sel.onchange = ()=>{
+      navTo("diary", sel.value ? {projectId: sel.value} : {});
+    };
+  }
+
+  const btn = $("#newDiary");
+  if(btn){
+    btn.onclick = ()=> openDiaryForm(null, selectedProjectId || "");
+  }
+
+  const listEl = $("#diaryList");
+  if(listEl){
+    listEl.onclick = (e)=>{
+      const row = (e.target && e.target.closest) ? e.target.closest("[data-diary-id]") : null;
+      if(!row) return;
+      if(e.target && e.target.closest && e.target.closest("button")) return;
+      const id = row.getAttribute("data-diary-id");
+      if(!id) return;
+      navTo("diary", Object.assign({}, selectedProjectId ? {projectId: selectedProjectId} : {}, {id}));
+    };
+  }
 }
+
 function diaryRowWithProject(d){
   const p = projectById(d.projectId);
   const date = d.date ? dateFmt(d.date) : "";
