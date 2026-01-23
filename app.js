@@ -3009,7 +3009,7 @@ function renderTasks(app, params){
     if(tsel){
       state.uiSelections.tasks = state.uiSelections.tasks || {};
       updateTaskDetailPanel(tsel, projectId);
-      if(typeof bindTaskDetailPane==='function') bindTaskDetailPane(tsel, projectId);
+      bindTaskDetail(tsel, projectId);
       return;
     } else {
       // stale selection
@@ -3128,13 +3128,14 @@ function renderTaskDetail(t){
   `;
 }
 function bindTaskDetail(t, projectId){
-  (document.getElementById("taskBack")||null)?.onclick = ()=>{
-    if(state.uiSelections?.tasks) delete state.uiSelections.tasks.selectedId;
+  const __back = $("#taskBack");
+  if(__back) __back.onclick = ()=>{
+    if(state.uiSelections && state.uiSelections.tasks) delete state.uiSelections.tasks.selectedId;
     saveState(state);
     navTo("tasks", projectId ? {projectId} : {});
   };
-  (document.getElementById("taskEdit")||null)?.onclick = ()=> openTaskForm(t);
-  (document.getElementById("taskDelete")||null)?.onclick = ()=>{
+  $("#taskEdit").onclick = ()=> openTaskForm(t);
+  $("#taskDelete").onclick = ()=>{
     if(confirmDelete(`task "${t.title}"`)){
       state.tasks = softDeleteById(state.tasks, t.id);
       if(state.uiSelections?.tasks) delete state.uiSelections.tasks.selectedId;
@@ -3304,7 +3305,7 @@ function renderDiary(app, params){
     if(dsel){
       state.uiSelections.diary = state.uiSelections.diary || {};
       updateDiaryDetailPanel(dsel, projectId);
-      if(typeof bindDiaryDetailPane==='function') bindDiaryDetailPane(dsel, projectId);
+      bindDiaryDetail(dsel, projectId);
       return;
     } else {
       state.uiSelections.diary = state.uiSelections.diary || {};
@@ -3419,13 +3420,14 @@ function renderDiaryDetail(d){
   `;
 }
 function bindDiaryDetail(d, projectId){
-  (document.getElementById("diaryBack")||null)?.onclick = ()=>{
-    if(state.uiSelections?.diary) delete state.uiSelections.diary.selectedId;
+  const __back = $("#diaryBack");
+  if(__back) __back.onclick = ()=>{
+    if(state.uiSelections && state.uiSelections.diary) delete state.uiSelections.diary.selectedId;
     saveState(state);
     navTo("diary", projectId ? {projectId} : {});
   };
-  (document.getElementById("diaryEdit")||null)?.onclick = ()=> openDiaryForm(d);
-  (document.getElementById("diaryDelete")||null)?.onclick = ()=>{
+  $("#diaryEdit").onclick = ()=> openDiaryForm(d);
+  $("#diaryDelete").onclick = ()=>{
     if(confirmDelete(`diary entry ${dateFmt(d.date)}`)){
       state.diary = softDeleteById(state.diary, d.id);
       if(state.uiSelections?.diary) delete state.uiSelections.diary.selectedId;
