@@ -703,14 +703,14 @@ function programmeTemplateResolve(key){
 }
 
 function programmeTasksForProject(projectId){
-  return window.aliveArr(state.programmeTasks).filter(x=>String(x.projectId)===String(projectId) && isAlive(x));
+  return aliveArr(state.programmeTasks).filter(x=>String(x.projectId)===String(projectId) && isAlive(x));
 }
 
 
 function saveProgrammeTasksForProject(projectId, tasks){
   // Replace all programmeTasks for this project with provided list, then persist state
   const pid = String(projectId);
-  const keep = window.aliveArr(state.programmeTasks).filter(x=>String(x.projectId)!==pid);
+  const keep = aliveArr(state.programmeTasks).filter(x=>String(x.projectId)!==pid);
   const next = keep.concat((tasks||[]).map(t=>{
     if(!t.projectId) t.projectId = pid;
     return t;
@@ -846,8 +846,8 @@ function generateProgrammeForProject(p, opts={}){
   if(!p.programmeStartDate) p.programmeStartDate = fmtISO(start);
   saveProject(p);
   // replace existing tasks for this project (soft delete old)
-  state.programmeTasks = window.aliveArr(state.programmeTasks).filter(x=>String(x.projectId)!==String(p.id));
-  state.programmeTasks = [...window.aliveArr(state.programmeTasks), ...tasks];
+  state.programmeTasks = aliveArr(state.programmeTasks).filter(x=>String(x.projectId)!==String(p.id));
+  state.programmeTasks = [...aliveArr(state.programmeTasks), ...tasks];
   saveState(state);
   return tasks;
 }
@@ -2093,7 +2093,7 @@ function renderEquipmentPage(app){
 
 function renderProjects(app){
   setHeader("Projects");
-  const list = window.aliveArr(state.projects)
+  const list = aliveArr(state.projects)
     .slice()
     .sort((a,b)=> (b.updatedAt||"").localeCompare(a.updatedAt||""));
   app.innerHTML = `
@@ -2132,7 +2132,7 @@ function renderProjects(app){
   const applyProjectFilters = ()=>{
     const q = ($("#projSearch")?.value || "").toLowerCase().trim();
     const stg = $("#projStageFilter")?.value || "";
-    const all = window.aliveArr(state.projects).slice().sort((a,b)=> (b.updatedAt||"").localeCompare(a.updatedAt||""));
+    const all = aliveArr(state.projects).slice().sort((a,b)=> (b.updatedAt||"").localeCompare(a.updatedAt||""));
     const filtered = all.filter(p=>{
       const s = (p.stage || "Active Build");
       const hitsStage = !stg || s===stg;
@@ -2413,7 +2413,7 @@ function renderProjectDetail(app, params){
 
 
 function projectEquipmentCard(p){
-  const assigned = window.aliveArr(state.equipment).filter(e=>!e.deletedAt && String(e.projectId)===String(p.id))
+  const assigned = aliveArr(state.equipment).filter(e=>!e.deletedAt && String(e.projectId)===String(p.id))
     .sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   return `
     <div class="card">
@@ -2440,7 +2440,7 @@ function projectEquipmentCard(p){
 }
 function assignEquipmentModal(projectId){
   const p = projectById(projectId);
-  const all = window.aliveArr(state.equipment).filter(e=>!e.deletedAt && (e.status||"active")!=="retired")
+  const all = aliveArr(state.equipment).filter(e=>!e.deletedAt && (e.status||"active")!=="retired")
     .sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   return `
     <div class="modal">
@@ -2478,7 +2478,7 @@ function projectOverview(p){
   const openTasks = alive(state.tasks).filter(t=>t.projectId===p.id && t.status!=="Done" && isAlive(t)).length;
   const diaryCount = alive(state.diary).filter(d=>d.projectId===p.id && isAlive(d)).length;
   const varOpen = alive(state.variations).filter(v=>v.projectId===p.id && v.status!=="Approved" && isAlive(v)).length;
-  const inspNext = window.aliveArr(state.inspections)
+  const inspNext = aliveArr(state.inspections)
     .filter(i=>i.projectId===p.id && isAlive(i))
     .sort((a,b)=>(a.date||"").localeCompare(b.date||""))
     .find(i=> new Date(i.date) >= new Date(new Date().toISOString().slice(0,10)));
@@ -2694,7 +2694,7 @@ if(tab==="variations"){
 
 // Project tab renderers
 function projectTasks(p){
-  const tasks = window.aliveArr(state.tasks)
+  const tasks = aliveArr(state.tasks)
     .filter(t=>t.projectId===p.id && isAlive(t))
     .sort((a,b)=>(b.updatedAt||"").localeCompare(a.updatedAt||""));
   return `
@@ -2735,7 +2735,7 @@ function taskRow(t){
 }
 
 function projectDiary(p){
-  const entries = window.aliveArr(state.diary)
+  const entries = aliveArr(state.diary)
     .filter(d=>d.projectId===p.id && isAlive(d))
     .sort((a,b)=>(b.date||"").localeCompare(a.date||""));
   return `
@@ -2774,7 +2774,7 @@ function diaryRow(d){
 }
 
 function projectVariations(p){
-  const vars = window.aliveArr(state.variations)
+  const vars = aliveArr(state.variations)
     .filter(v=>v.projectId===p.id && isAlive(v))
     .sort((a,b)=>(b.updatedAt||"").localeCompare(a.updatedAt||""));
   return `
@@ -2815,7 +2815,7 @@ function variationRow(v){
 
 function projectSubbies(p){
   // subbies are global; show with quick assign by using tasks, etc.
-  const subbies = window.aliveArr(state.subbies).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const subbies = aliveArr(state.subbies).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   const used = new Set(alive(state.tasks).filter(t=>t.projectId===p.id && isAlive(t)).map(t=>t.assignedSubbieId).filter(Boolean));
   return `
     <div class="card">
@@ -2861,7 +2861,7 @@ function subbieRow(s, used){
 }
 
 function projectDeliveries(p){
-  const deliveries = window.aliveArr(state.deliveries)
+  const deliveries = aliveArr(state.deliveries)
     .filter(d=>d.projectId===p.id && isAlive(d))
     .sort((a,b)=>(b.date||"").localeCompare(a.date||""));
   return `
@@ -2901,7 +2901,7 @@ function deliveryRow(d){
 }
 
 function projectInspections(p){
-  const inspections = window.aliveArr(state.inspections)
+  const inspections = aliveArr(state.inspections)
     .filter(i=>i.projectId===p.id && isAlive(i))
     .sort((a,b)=>(a.date||"").localeCompare(b.date||""));
   const planned = (p.cccPlanTypes && Array.isArray(p.cccPlanTypes)) ? p.cccPlanTypes : [];
@@ -2998,14 +2998,14 @@ function renderTasks(app, params){
   setHeader("Tasks");
   const projectId = params.projectId || "";
   const selectedId = params.id || "";
-  const projects = window.aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
-  const tasks = window.aliveArr(state.tasks)
+  const projects = aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const tasks = aliveArr(state.tasks)
     .filter(t=> !projectId || t.projectId===projectId)
     .slice()
     .sort((a,b)=>(b.updatedAt||"").localeCompare(a.updatedAt||""));
   
   if(selectedId){
-    const tsel = window.aliveArr(state.tasks).find(t=>String(t.id)===String(selectedId));
+    const tsel = aliveArr(state.tasks).find(t=>String(t.id)===String(selectedId));
     if(tsel){
       state.uiSelections.tasks = state.uiSelections.tasks || {};
       updateTaskDetailPanel(tsel, projectId);
@@ -3023,12 +3023,13 @@ function renderTasks(app, params){
     const sid = getSelected("tasks");
     const body = document.getElementById("taskDetailBody");
     if(body){
-      const item = sid ? window.aliveArr(state.tasks).find(x=>String(x.id)===String(sid)) : null;
+      const item = sid ? aliveArr(state.tasks).find(x=>String(x.id)===String(sid)) : null;
       body.innerHTML = renderTaskDetailPane(item);
       if(item) bindTaskDetailPane(item);
     }
   }catch(e){}
 
+}
 app.innerHTML = `
     <div class="card">
       <div class="row space">
@@ -3127,20 +3128,21 @@ function renderTaskDetail(t){
   `;
 }
 function bindTaskDetail(t, projectId){
-  $("#taskBack").onclick = ()=>{
+  const back = $("#taskBack");
+  // If detail DOM isn't rendered, don't bind (prevents null errors)
+  if(!back) return;
+
+  back.onclick = ()=>{
     if(state.uiSelections?.tasks) delete state.uiSelections.tasks.selectedId;
     saveState(state);
     navTo("tasks", projectId ? {projectId} : {});
   };
-  $("#taskEdit").onclick = ()=> openTaskForm(t);
-  $("#taskDelete").onclick = ()=>{
-    if(confirmDelete(`task "${t.title}"`)){
-      state.tasks = softDeleteById(state.tasks, t.id);
-      if(state.uiSelections?.tasks) delete state.uiSelections.tasks.selectedId;
-      saveState(state);
-      navTo("tasks", projectId ? {projectId} : {});
-    }
-  };
+
+  const editBtn = $("#taskEdit");
+  if(editBtn) editBtn.onclick = ()=>openTaskForm(t);
+
+  const delBtn = $("#taskDelete");
+  if(delBtn) delBtn.onclick = ()=>{ deleteTask(t.id); };
 }
 
 function openTaskForm(seed={}){
@@ -3159,8 +3161,8 @@ function openTaskForm(seed={}){
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
-  const projects = window.aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
-  const subbies = window.aliveArr(state.subbies).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const projects = aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const subbies = aliveArr(state.subbies).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   showModal(`
     <div class="row space">
       <h2>${isEdit ? "Edit Task" : "New Task"}</h2>
@@ -3292,14 +3294,14 @@ function renderDiary(app, params){
   setHeader("Diary");
   const projectId = params.projectId || "";
   const selectedId = params.id || "";
-  const projects = window.aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
-  const entries = window.aliveArr(state.diary)
+  const projects = aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const entries = aliveArr(state.diary)
     .filter(d=> !projectId || d.projectId===projectId)
     .slice()
     .sort((a,b)=>(b.date||"").localeCompare(a.date||""));
   
   if(selectedId){
-    const dsel = window.aliveArr(state.diary).find(d=>String(d.id)===String(selectedId));
+    const dsel = aliveArr(state.diary).find(d=>String(d.id)===String(selectedId));
     if(dsel){
       state.uiSelections.diary = state.uiSelections.diary || {};
       updateDiaryDetailPanel(dsel, projectId);
@@ -3316,12 +3318,13 @@ function renderDiary(app, params){
     const sid = getSelected("diary");
     const body = document.getElementById("diaryDetailBody");
     if(body){
-      const item = sid ? window.aliveArr(state.diary).find(x=>String(x.id)===String(sid)) : null;
+      const item = sid ? aliveArr(state.diary).find(x=>String(x.id)===String(sid)) : null;
       body.innerHTML = renderDiaryDetailPane(item);
       if(item) bindDiaryDetailPane(item);
     }
   }catch(e){}
 
+}
 app.innerHTML = `
     <div class="card">
       <div class="row space">
@@ -3417,23 +3420,20 @@ function renderDiaryDetail(d){
   `;
 }
 function bindDiaryDetail(d, projectId){
-  if(!document.getElementById("diaryEdit")) return;
-  if(!document.getElementById("diaryDelete")) return;
-  if(!document.getElementById("diaryBack")) return;
-  $("#diaryBack").onclick = ()=>{
+  const back = $("#diaryBack");
+  if(!back) return;
+
+  back.onclick = ()=>{
     if(state.uiSelections?.diary) delete state.uiSelections.diary.selectedId;
     saveState(state);
     navTo("diary", projectId ? {projectId} : {});
   };
-  $("#diaryEdit").onclick = ()=> openDiaryForm(d);
-  $("#diaryDelete").onclick = ()=>{
-    if(confirmDelete(`diary entry ${dateFmt(d.date)}`)){
-      state.diary = softDeleteById(state.diary, d.id);
-      if(state.uiSelections?.diary) delete state.uiSelections.diary.selectedId;
-      saveState(state);
-      navTo("diary", projectId ? {projectId} : {});
-    }
-  };
+
+  const editBtn = $("#diaryEdit");
+  if(editBtn) editBtn.onclick = ()=>openDiaryForm(d);
+
+  const delBtn = $("#diaryDelete");
+  if(delBtn) delBtn.onclick = ()=>{ deleteDiary(d.id); };
 }
 
 function openDiaryForm(seed={}){
@@ -3453,7 +3453,7 @@ function openDiaryForm(seed={}){
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
-  const projects = window.aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const projects = aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   showModal(`
     <div class="row space">
       <h2>${isEdit ? "Edit Diary Entry" : "New Diary Entry"}</h2>
@@ -3577,7 +3577,7 @@ function openVariationForm(seed={}){
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
-  const projects = window.aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const projects = aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   showModal(`
     <div class="row space">
       <h2>${isEdit ? "Edit Variation" : "New Variation"}</h2>
@@ -3681,7 +3681,7 @@ function openSubbieForm(seed=null){
     createdAt:new Date().toISOString(),
     updatedAt:new Date().toISOString()
   };
-  const projects = window.aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const projects = aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   showModal(`
     <div class="row space">
       <h2>${isEdit ? "Edit Subbie" : "Add Subbie"}</h2>
@@ -3778,7 +3778,7 @@ function openDeliveryForm(seed={}){
     createdAt:new Date().toISOString(),
     updatedAt:new Date().toISOString()
   };
-  const projects = window.aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const projects = aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   showModal(`
     <div class="row space">
       <h2>${isEdit ? "Edit Delivery" : "New Delivery"}</h2>
@@ -3890,7 +3890,7 @@ function openInspectionForm(seed={}){
     createdAt:new Date().toISOString(),
     updatedAt:new Date().toISOString()
   };
-  const projects = window.aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const projects = aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   showModal(`
     <div class="row space">
       <h2>${isEdit ? "Edit Inspection" : "New Inspection"}</h2>
@@ -4064,7 +4064,7 @@ function openCCCPlanModal(project){
 
 function renderReports(app){
   setHeader("Reports");
-  const projects = window.aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const projects = aliveArr(state.projects).slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   app.innerHTML = `
     <div class="card">
       <div class="row space">
@@ -4233,7 +4233,7 @@ function runHnryExportUI(projectId, from=null, to=null){
   const p = isAll ? null : projectById(projectId);
   if(!isAll && !p) return;
 
-  const diary = window.aliveArr(state.diary)
+  const diary = aliveArr(state.diary)
     .filter(d=>d.projectId===projectId && isAlive(d))
     .filter(d=>d.date>=rangeFrom && d.date<=rangeTo)
     .filter(d=>d.billable)
@@ -4744,7 +4744,7 @@ host.querySelectorAll("[data-precon-check]").forEach(el=>{
 
 function renderPipeline(app){
   setHeader("Pipeline");
-  const leads = window.aliveArr(state.leads).slice().sort((a,b)=> (b.updatedAt||"").localeCompare(a.updatedAt||""));
+  const leads = aliveArr(state.leads).slice().sort((a,b)=> (b.updatedAt||"").localeCompare(a.updatedAt||""));
   app.innerHTML = `
     <div class="card">
       <div class="row space">
@@ -4773,7 +4773,7 @@ function renderPipeline(app){
   const apply = ()=>{
     const st = $("#leadStatusFilter")?.value || "";
     const q = ($("#leadSearch")?.value || "").toLowerCase().trim();
-    const all = window.aliveArr(state.leads).slice().sort((a,b)=> (b.updatedAt||"").localeCompare(a.updatedAt||""));
+    const all = aliveArr(state.leads).slice().sort((a,b)=> (b.updatedAt||"").localeCompare(a.updatedAt||""));
     const filtered = all.filter(l=>{
       const hitsSt = !st || (l.status||"New")===st;
       const hitsQ = !q || ((l.clientName||"").toLowerCase().includes(q) || (l.address||"").toLowerCase().includes(q));
@@ -5062,15 +5062,11 @@ function softDeleteWhere(arr, predicate){
   });
 }
 function isAlive(x){ return x && !x.deletedAt; }
-
-// Ensure aliveArr helper is always available (Safari/strict mode safety)
-window.aliveArr = window.aliveArr || function aliveArr(arr){
-  if(!Array.isArray(arr)) return [];
-  return arr.filter(isAlive);
-};
-
-
 function aliveArr(arr){ return (arr||[]).filter(isAlive); }
+
+// Expose helpers for inline handlers / global usage
+try { window.aliveArr = aliveArr; } catch(e) {}
+
 
 function alive(arr){ return (arr||[]).filter(isAlive); }
 
@@ -5174,10 +5170,10 @@ function runHnryDiaryExportSimple(projectId, from, to){
   const rangeFrom = from || new Date(Date.now()-7*86400000).toISOString().slice(0,10);
   const rangeTo   = to   || new Date().toISOString().slice(0,10);
 
-  const activeProjects = window.aliveArr(state.projects).filter(p=>!p.deletedAt);
+  const activeProjects = aliveArr(state.projects).filter(p=>!p.deletedAt);
   const activeIds = activeProjects.map(p=>p.id);
 
-  const diary = window.aliveArr(state.diary)
+  const diary = aliveArr(state.diary)
     .filter(d=>!d.deletedAt)
     .filter(d=>Number(d.hours||0)>0)
     .filter(d=>(d.date||"")>=rangeFrom && (d.date||"")<=rangeTo)
@@ -5373,10 +5369,10 @@ function updateAppUpdateStamp(){
 
 }
 
-function equipmentById(id){ return window.aliveArr(state.equipment).find(e=>String(e.id)===String(id)); }
-function equipmentLogsFor(id){ return window.aliveArr(state.equipmentLogs).filter(l=>String(l.equipmentId)===String(id) && !l.deletedAt).sort((a,b)=>(b.date||"").localeCompare(a.date||"")); }
+function equipmentById(id){ return aliveArr(state.equipment).find(e=>String(e.id)===String(id)); }
+function equipmentLogsFor(id){ return aliveArr(state.equipmentLogs).filter(l=>String(l.equipmentId)===String(id) && !l.deletedAt).sort((a,b)=>(b.date||"").localeCompare(a.date||"")); }
 function upsertEquipment(e){
-  state.equipment = window.aliveArr(state.equipment);
+  state.equipment = aliveArr(state.equipment);
   const idx = state.equipment.findIndex(x=>String(x.id)===String(e.id));
   if(idx>=0) state.equipment[idx]=e; else state.equipment.unshift(e);
   saveState(state);
@@ -5388,13 +5384,13 @@ function softDeleteEquipment(id){
   upsertEquipment(e);
 }
 function upsertEquipmentLog(l){
-  state.equipmentLogs = window.aliveArr(state.equipmentLogs);
+  state.equipmentLogs = aliveArr(state.equipmentLogs);
   const idx = state.equipmentLogs.findIndex(x=>String(x.id)===String(l.id));
   if(idx>=0) state.equipmentLogs[idx]=l; else state.equipmentLogs.unshift(l);
   saveState(state);
 }
 function softDeleteEquipmentLog(id){
-  const l = window.aliveArr(state.equipmentLogs).find(x=>String(x.id)===String(id));
+  const l = aliveArr(state.equipmentLogs).find(x=>String(x.id)===String(id));
   if(!l) return;
   l.deletedAt = new Date().toISOString();
   upsertEquipmentLog(l);
@@ -5427,7 +5423,7 @@ function fmtNZDateTime(iso){
 }
 
 // Ensure equipment tables exist
-try{ state.equipment = window.aliveArr(state.equipment); state.equipmentLogs = window.aliveArr(state.equipmentLogs); }catch(e){}
+try{ state.equipment = aliveArr(state.equipment); state.equipmentLogs = aliveArr(state.equipmentLogs); }catch(e){}
     try{
       const lu = document.getElementById('lastUpdateStamp');
       if(lu) lu.textContent = getLastUpdateStamp();
@@ -5442,7 +5438,7 @@ try{ state.equipment = window.aliveArr(state.equipment); state.equipmentLogs = w
 function equipmentFormModal(e){
   const isNew = !e;
   const eq = e ? {...e} : { id: uid(), status:"active", name:"", type:"", assetTag:"", projectId:"", locationText:"", notes:"", nextServiceDate:"", wofExpiry:"", regExpiry:"" };
-  const projs = window.aliveArr(state.projects).filter(p=>!p.deletedAt).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const projs = aliveArr(state.projects).filter(p=>!p.deletedAt).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   const fmtIn = (s)=> (s && String(s).length>=10) ? String(s).slice(0,10) : "";
   return `
   <div class="modal">
@@ -5585,7 +5581,7 @@ function equipmentViewModal(eqId){
   </div>`;
 }
 function equipmentLogModal(equipmentId, logId){
-  const existing = logId ? window.aliveArr(state.equipmentLogs).find(x=>String(x.id)===String(logId)) : null;
+  const existing = logId ? aliveArr(state.equipmentLogs).find(x=>String(x.id)===String(logId)) : null;
   const l = existing ? {...existing} : { id: uid(), equipmentId, date: new Date().toISOString().slice(0,10), kind:"Service", cost:"", notes:"" };
   return `
   <div class="modal">
@@ -5691,9 +5687,9 @@ document.addEventListener("click", (ev)=>{
 
 
 
-function fleetById(id){ return window.aliveArr(state.fleet).find(v=>String(v.id)===String(id)); }
+function fleetById(id){ return aliveArr(state.fleet).find(v=>String(v.id)===String(id)); }
 function upsertFleet(v){
-  state.fleet = window.aliveArr(state.fleet);
+  state.fleet = aliveArr(state.fleet);
   const idx = state.fleet.findIndex(x=>String(x.id)===String(v.id));
   if(idx>=0) state.fleet[idx]=v; else state.fleet.unshift(v);
   saveState(state);
@@ -5711,10 +5707,10 @@ function softDeleteFleet(id){
 
 function migrateFleetEquipmentSplit(){
   try{
-    state.equipment = window.aliveArr(state.equipment);
-    state.equipmentLogs = window.aliveArr(state.equipmentLogs);
-    state.fleet = window.aliveArr(state.fleet);
-    state.fleetLogs = window.aliveArr(state.fleetLogs);
+    state.equipment = aliveArr(state.equipment);
+    state.equipmentLogs = aliveArr(state.equipmentLogs);
+    state.fleet = aliveArr(state.fleet);
+    state.fleetLogs = aliveArr(state.fleetLogs);
     if(state.fleet.length>0) return;
     const eq = state.equipment;
     const newEquip = [];
@@ -5755,7 +5751,7 @@ try{ migrateFleetEquipmentSplit(); }catch(e){}
 
 
 function renderFleet(){
-  const items = window.aliveArr(state.fleet).filter(v=>!v.deletedAt);
+  const items = aliveArr(state.fleet).filter(v=>!v.deletedAt);
   const q = (state.ui && state.ui.fleetQuery) ? String(state.ui.fleetQuery).toLowerCase() : "";
   const statusFilter = (state.ui && state.ui.fleetStatus) ? state.ui.fleetStatus : "active";
   const filtered = items.filter(v=>{
@@ -5770,7 +5766,7 @@ function renderFleet(){
     const hay = `${v.name||""} ${v.vehicleType||""} ${v.plate||""} ${v.locationText||""}`.toLowerCase();
     return hay.includes(q);
   }).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
-  const projMap = new Map(window.aliveArr(state.projects).map(p=>[String(p.id), p]));
+  const projMap = new Map(aliveArr(state.projects).map(p=>[String(p.id), p]));
   const fmt = (s)=> s ? String(s).slice(0,10).split("-").reverse().join("/") : "—";
   const badge = (label, dateStr)=>{
     if(!dateStr) return `<span class="badge">${label} —</span>`;
@@ -5839,7 +5835,7 @@ function renderFleet(){
 
 
 function renderEquipment(){
-  const items = window.aliveArr(state.equipment).filter(e=>!e.deletedAt);
+  const items = aliveArr(state.equipment).filter(e=>!e.deletedAt);
   const q = (state.ui && state.ui.equipQuery) ? String(state.ui.equipQuery).toLowerCase() : "";
   const statusFilter = (state.ui && state.ui.equipStatus) ? state.ui.equipStatus : "active";
   const filtered = items.filter(e=>{
@@ -5854,7 +5850,7 @@ function renderEquipment(){
     const hay = `${e.name||""} ${e.category||""} ${e.assetTag||""} ${e.locationText||""}`.toLowerCase();
     return hay.includes(q);
   }).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
-  const projMap = new Map(window.aliveArr(state.projects).map(p=>[String(p.id), p]));
+  const projMap = new Map(aliveArr(state.projects).map(p=>[String(p.id), p]));
   const fmt = (s)=> s ? String(s).slice(0,10).split("-").reverse().join("/") : "—";
   const badgeTT = (dateStr)=>{
     if(!dateStr) return `<span class="badge">Test & Tag —</span>`;
@@ -5918,7 +5914,7 @@ function renderEquipment(){
 function fleetFormModal(v){
   const isNew = !v;
   const veh = v ? {...v} : { id: uid(), status:"active", name:"", vehicleType:"", plate:"", projectId:"", locationText:"", notes:"", nextServiceDate:"", wofExpiry:"", regExpiry:"", odometerKm:"" };
-  const projs = window.aliveArr(state.projects).filter(p=>!p.deletedAt).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const projs = aliveArr(state.projects).filter(p=>!p.deletedAt).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   const fmtIn = (s)=> (s && String(s).length>=10) ? String(s).slice(0,10) : "";
   return `
   <div class="modal"><div class="modalCard">
@@ -5970,7 +5966,7 @@ function fleetFormModal(v){
 function equipmentFormModal(e){
   const isNew = !e;
   const eq = e ? {...e} : { id: uid(), status:"active", name:"", category:"", assetTag:"", projectId:"", locationText:"", notes:"", testTagDue:"" };
-  const projs = window.aliveArr(state.projects).filter(p=>!p.deletedAt).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+  const projs = aliveArr(state.projects).filter(p=>!p.deletedAt).sort((a,b)=>(a.name||"").localeCompare(b.name||""));
   const fmtIn = (s)=> (s && String(s).length>=10) ? String(s).slice(0,10) : "";
   return `
   <div class="modal"><div class="modalCard">
@@ -6347,7 +6343,7 @@ document.addEventListener("click",(ev)=>{
   const route = (typeof parseRoute==="function") ? parseRoute() : {path:""};
   if(route.path==="tasks" || route.path==="tasks/"){
     setSelected("tasks", id);
-    const t = window.aliveArr(state.tasks).find(x=>String(x.id)===String(id));
+    const t = aliveArr(state.tasks).find(x=>String(x.id)===String(id));
     const body = document.getElementById("taskDetailBody");
     if(body){
       body.innerHTML = renderTaskDetailPane(t);
@@ -6357,7 +6353,7 @@ document.addEventListener("click",(ev)=>{
   }
   if(route.path==="diary" || route.path==="diary/"){
     setSelected("diary", id);
-    const d = window.aliveArr(state.diary).find(x=>String(x.id)===String(id));
+    const d = aliveArr(state.diary).find(x=>String(x.id)===String(id));
     const body = document.getElementById("diaryDetailBody");
     if(body){
       body.innerHTML = renderDiaryDetailPane(d);
@@ -6420,7 +6416,4 @@ function initNavMenu(){
     closeMenu();
     try{ navTo(route); }catch(err){}
   });
-}
-
-}
 }
